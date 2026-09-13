@@ -6,6 +6,10 @@
 
 **当前版本为 0.2.0，已完成当前支持范围内的实机验证。** 扩展提供 `工具 > 选项 > Smart Input > 常规` 设置页、左下角状态栏和 `工具` 菜单暂停/恢复命令，并支持微软拼音和搜狗拼音。构建、自动化测试、VSIX 包结构校验以及 Windows 10/11、Visual Studio 2022/2026 x64 实机验证已通过。
 
+## 功能演示
+
+![Smart Input 自动切换输入法演示](docs/assets/smart-input-demo.gif)
+
 ## 支持范围
 
 - 宿主：Visual Studio 2022 **17.14+** 和 Visual Studio 2026，x64。

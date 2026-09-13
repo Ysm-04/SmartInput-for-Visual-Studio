@@ -1,0 +1,6 @@
+<Project>
+  <PropertyGroup>
+    <Deterministic>true</Deterministic>
+    <UseSharedCompilation>false</UseSharedCompilation>
+  </PropertyGroup>
+</Project>

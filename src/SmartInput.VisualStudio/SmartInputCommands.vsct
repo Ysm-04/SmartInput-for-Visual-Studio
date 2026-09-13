@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CommandTable xmlns="http://schemas.microsoft.com/VisualStudio/2005-10-18/CommandTable">
+  <Extern href="stdidcmd.h" />
+  <Extern href="vsshlids.h" />
+
+  <Commands package="guidSmartInputPackage">
+    <Groups>
+      <Group guid="guidSmartInputCommandSet" id="SmartInputToolsGroup" priority="0xFF70">
+        <Parent guid="guidSHLMainMenu" id="IDM_VS_MENU_TOOLS" />
+      </Group>
+    </Groups>
+
+    <Buttons>
+      <Button guid="guidSmartInputCommandSet" id="TogglePauseCommand" priority="0x0100" type="Button">
+        <Parent guid="guidSmartInputCommandSet" id="SmartInputToolsGroup" />
+        <CommandFlag>TextChanges</CommandFlag>
+        <Strings>
+          <ButtonText>Smart Input: 暂停/恢复自动切换</ButtonText>
+          <CommandName>SmartInput.TogglePause</CommandName>
+        </Strings>
+      </Button>
+    </Buttons>
+  </Commands>
+
+  <Symbols>
+    <GuidSymbol name="guidSmartInputPackage" value="{A11D90FC-8F3D-493A-A227-D7A59C26EAE8}" />
+    <GuidSymbol name="guidSmartInputCommandSet" value="{ACF69A27-0399-4D26-9582-017CF1DBD11B}">
+      <IDSymbol name="SmartInputToolsGroup" value="0x1020" />
+      <IDSymbol name="TogglePauseCommand" value="0x0100" />
+    </GuidSymbol>
+  </Symbols>
+</CommandTable>

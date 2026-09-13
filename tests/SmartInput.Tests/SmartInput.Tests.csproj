@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" />
+  <PropertyGroup>
+    <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
+    <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
+    <ProjectGuid>{AD5E7C19-0ECF-4B4F-B969-C6AF7E22747C}</ProjectGuid>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>SmartInput.Tests</RootNamespace>
+    <AssemblyName>SmartInput.Tests</AssemblyName>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
+    <LangVersion>7.3</LangVersion>
+    <OutputPath>bin\$(Configuration)\</OutputPath>
+    <DebugType>portable</DebugType>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="WindowsBase" />
+    <Reference Include="PresentationCore" />
+    <Reference Include="PresentationFramework" />
+    <ProjectReference Include="..\..\src\SmartInput.Core\SmartInput.Core.csproj">
+      <Project>{0E46424E-6D93-4079-9344-0B20FFB09BF0}</Project>
+      <Name>SmartInput.Core</Name>
+    </ProjectReference>
+    <Compile Include="*.cs" />
+    <Compile Include="..\..\src\SmartInput.VisualStudio\CaretColorController.cs">
+      <Link>CaretColorController.cs</Link>
+    </Compile>
+    <Compile Include="..\..\src\SmartInput.VisualStudio\SupportedInputMethodProfile.cs">
+      <Link>SupportedInputMethodProfile.cs</Link>
+    </Compile>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>

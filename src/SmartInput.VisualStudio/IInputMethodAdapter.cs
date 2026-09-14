@@ -10,5 +10,6 @@ namespace SmartInput.VisualStudio
         bool IsActive { get; }
         InputMode Read();
         bool TrySet(InputMode desired);
+        bool TryRecover(InputMode desired);
     }
 }

@@ -17,6 +17,8 @@ namespace SmartInput.VisualStudio
     internal sealed class EditorSession : IDisposable
     {
         private const int MaximumDocumentLength = 2 * 1024 * 1024;
+        private const int SwitchConfirmationWindowMilliseconds = 600;
+        private const int MaximumSwitchAttempts = 2;
         private readonly IWpfTextView view;
         private readonly IClassifier classifier;
         private readonly CaretColorController caret;
@@ -34,6 +36,8 @@ namespace SmartInput.VisualStudio
         private InputMode lastActual = InputMode.Unknown;
         private InputMode? pending;
         private DateTime pendingDeadline;
+        private int pendingAttempts;
+        private string pendingContext;
         private string blockedContext;
 
         public string Status { get; private set; } = "等待编辑器焦点";
@@ -95,7 +99,7 @@ namespace SmartInput.VisualStudio
             Guard(() =>
             {
                 policy.Reset();
-                pending = null;
+                ClearPending();
                 blockedContext = null;
                 lastActual = InputMode.Unknown;
                 wasFocused = false;
@@ -113,7 +117,7 @@ namespace SmartInput.VisualStudio
                 wpfComposition = nativeComposition = false;
                 wasFocused = false;
                 ime = null;
-                pending = null;
+                ClearPending();
                 policy.Reset();
                 caret.SetRed(false);
                 SetStatus(InactiveStatus());
@@ -128,7 +132,7 @@ namespace SmartInput.VisualStudio
             Guard(() =>
             {
                 var settings = SessionSettings.Current;
-                policy.Reset(); pending = null; blockedContext = null;
+                policy.Reset(); ClearPending(); blockedContext = null;
                 caret.SetColor(settings.ManualCaretWpfColor);
                 caret.SetRed(false);
                 SetStatus(InactiveStatus(settings));
@@ -182,7 +186,7 @@ namespace SmartInput.VisualStudio
             {
                 ime = activeIme;
                 policy.Reset();
-                pending = null;
+                ClearPending();
                 blockedContext = null;
                 lastActual = InputMode.Unknown;
             }
@@ -210,16 +214,23 @@ namespace SmartInput.VisualStudio
             if (actual == InputMode.Unknown)
             {
                 // No guessing and no switch to another keyboard when a user selects a different IME.
-                lastActual = InputMode.Unknown; pending = null; policy.Reset();
+                lastActual = InputMode.Unknown; ClearPending(); policy.Reset();
                 caret.SetRed(false);
                 SetStatus("未检测到可控制的微软拼音或搜狗拼音");
                 return;
             }
             if (pending.HasValue)
             {
-                if (actual == pending.Value)
+                string currentPendingContext = CurrentContextKey();
+                if (pendingContext != null && currentPendingContext != "pending"
+                    && currentPendingContext != pendingContext)
                 {
-                    pending = null;
+                    ClearPending();
+                    blockedContext = null;
+                }
+                else if (actual == pending.Value)
+                {
+                    ClearPending();
                     lastActual = actual;
                 }
                 else if (DateTime.UtcNow < pendingDeadline)
@@ -227,10 +238,26 @@ namespace SmartInput.VisualStudio
                     SetStatus("等待输入法确认");
                     return;
                 }
+                else if (pendingAttempts < MaximumSwitchAttempts)
+                {
+                    InputMode retryMode = pending.Value;
+                    pendingAttempts++;
+                    pendingDeadline = DateTime.UtcNow.AddMilliseconds(SwitchConfirmationWindowMilliseconds);
+                    if (!ime.TryRecover(retryMode))
+                    {
+                        ClearPending();
+                        blockedContext = pendingContext ?? currentPendingContext;
+                        SetStatus("输入法拒绝切换；保留现状");
+                        return;
+                    }
+                    SetStatus("等待输入法确认");
+                    return;
+                }
                 else
                 {
-                    pending = null;
-                    blockedContext = CurrentContextKey();
+                    string failedContext = pendingContext ?? currentPendingContext;
+                    ClearPending();
+                    blockedContext = failedContext;
                     lastActual = actual;
                     caret.SetRed(false);
                     SetStatus("切换未确认；移动到其他区域后重试");
@@ -276,10 +303,12 @@ namespace SmartInput.VisualStudio
             if (requested.HasValue)
             {
                 pending = requested;
-                pendingDeadline = DateTime.UtcNow.AddMilliseconds(600);
+                pendingAttempts = 1;
+                pendingContext = context.Key;
+                pendingDeadline = DateTime.UtcNow.AddMilliseconds(SwitchConfirmationWindowMilliseconds);
                 if (!ime.TrySet(requested.Value))
                 {
-                    pending = null; blockedContext = context.Key;
+                    ClearPending(); blockedContext = context.Key;
                     SetStatus("输入法拒绝切换；保留现状");
                     return;
                 }
@@ -295,6 +324,13 @@ namespace SmartInput.VisualStudio
         {
             if (map == null || view.TextSnapshot != analyzedSnapshot) return "pending";
             return map.At(view.Caret.Position.BufferPosition.Position).Key;
+        }
+
+        private void ClearPending()
+        {
+            pending = null;
+            pendingAttempts = 0;
+            pendingContext = null;
         }
 
         private bool IsExcludedCode(ITextSnapshot snapshot, int position)

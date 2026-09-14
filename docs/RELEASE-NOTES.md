@@ -2,6 +2,30 @@
 
 作者：**我在人间做废物**
 
+## 0.2.1
+
+状态：修复版。针对搜狗输入法在 Visual Studio 2026 中状态写入成功但实际输入态未切换的问题进行兼容性修复。
+
+包路径：
+
+```text
+src/SmartInput.VisualStudio/bin/Release/SmartInput.VisualStudio.vsix
+```
+
+SHA256：构建完成后以 `README.md` 和 `docs/VALIDATION.md` 中记录的值为准。
+
+### 修复
+
+- 搜狗优先通过 IMM32 读取和写入实际中英文转换状态，避免状态栏显示与实际输入结果不一致。
+- 搜狗状态确认失败时，最多自动发送一次已配置的 `Shift` 切换键并再次确认。
+- 微软拼音继续使用原有 TSF/WPF 状态路径，不模拟键盘输入。
+- 保留 600ms 确认窗口和一次性失败阻塞，避免连续抢夺用户输入法状态。
+
+### 验证
+
+- Release 构建、104 项自动化测试和 VSIX 结构校验通过。
+- 已针对搜狗拼音 `Shift` 中英文切换配置完成 Visual Studio 2026 实机回归。
+
 ## 0.2.0
 
 状态：正式版。已完成 Windows 10、Windows 11、Visual Studio 2022、Visual Studio 2026 x64 以及微软拼音/搜狗拼音的当前支持范围验证。

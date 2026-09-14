@@ -52,7 +52,7 @@ namespace SmartInput.VisualStudio
             }
         }
 
-        public InputMode Read()
+        public virtual InputMode Read()
         {
             if (!IsForeground || !IsActive) return InputMode.Unknown;
             try
@@ -69,7 +69,7 @@ namespace SmartInput.VisualStudio
             catch (InvalidOperationException) { return InputMode.Unknown; }
         }
 
-        public bool TrySet(InputMode desired)
+        public virtual bool TrySet(InputMode desired)
         {
             if (!IsForeground || !IsActive || desired == InputMode.Unknown) return false;
             try
@@ -82,15 +82,22 @@ namespace SmartInput.VisualStudio
                 {
                     var mode = input.ImeConversionMode;
                     if (mode == ImeConversionModeValues.DoNotCare) return false;
-                    // Preserve the input method's other conversion flags; only request native Chinese mode.
-                    input.ImeConversionMode = mode | ImeConversionModeValues.Native;
+                    // Some third-party IMEs ignore conversion-mode writes while their TSF state is Off.
+                    // Turn the active profile on first, then preserve its other flags while requesting
+                    // native Chinese mode. The session still confirms the result asynchronously.
                     input.ImeState = InputMethodState.On;
+                    input.ImeConversionMode = mode | ImeConversionModeValues.Native;
                 }
                 // A successful setter is not confirmation. The session reads back asynchronously.
                 return true;
             }
             catch (COMException) { return false; }
             catch (InvalidOperationException) { return false; }
+        }
+
+        public virtual bool TryRecover(InputMode desired)
+        {
+            return TrySet(desired);
         }
 
         internal static bool IsCurrentProcessForeground(int processId)

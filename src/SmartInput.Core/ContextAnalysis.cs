@@ -4,7 +4,7 @@ using System.Threading;
 
 namespace SmartInput.Core
 {
-    public enum SourceLanguage { Cpp, CSharp, Sql }
+    public enum SourceLanguage { Cpp, CSharp, Sql, Xaml }
     public enum InputMode { Unknown, English, Chinese }
     public enum ContextKind { Code, Comment, String, Character }
 
@@ -102,6 +102,9 @@ namespace SmartInput.Core
                 // Transact-SQL has its own comment/string/identifier delimiters and no interpolation,
                 // so it takes a separate branch that never touches the C/C# scanners below.
                 if (language == SourceLanguage.Sql) { ScanSqlChunk(ref i); continue; }
+                // XAML is XML markup: <!-- --> comments, quoted attribute values and element text
+                // content. It also never uses the C/C# delimiters, so it has its own branch.
+                if (language == SourceLanguage.Xaml) { ScanXamlChunk(ref i); continue; }
                 if (Starts(i, "//"))
                 {
                     int start = i + 2;
@@ -415,6 +418,78 @@ namespace SmartInput.Core
                 i++;
             }
             Add(ContextKind.String, start, i);
+        }
+
+        // ---- XAML ---------------------------------------------------------
+        // XAML is scanned as XML markup rather than as a C-family language:
+        //   <!-- ... -->                       comment  -> Chinese
+        //   <Element Attribute="value">        tag/attribute names -> code/English
+        //   attribute="..." / '...'            value    -> Chinese when it contains Han text
+        //   <![CDATA[ ... ]]>                  text     -> Chinese when it contains Han text
+        //   bare element text content          text     -> Chinese when it contains Han text
+        // Indentation and other whitespace-only text stay code so moving the caret between tags
+        // does not report a spurious string context.
+        private void ScanXamlChunk(ref int i)
+        {
+            if (Starts(i, "<!--")) { ScanXamlComment(ref i); return; }
+            if (Starts(i, "<![CDATA[")) { ScanXamlCData(ref i); return; }
+            if (text[i] == '<') { ScanXamlTag(ref i); return; }
+            ScanXamlText(ref i);
+        }
+
+        private void ScanXamlComment(ref int i)
+        {
+            int start = i + 4;
+            i = start;
+            while (i < text.Length && !Starts(i, "-->")) { CheckCancellation(i); i++; }
+            Add(ContextKind.Comment, start, i);
+            if (i < text.Length) i += 3;
+        }
+
+        private void ScanXamlCData(ref int i)
+        {
+            int start = i + 9;
+            i = start;
+            while (i < text.Length && !Starts(i, "]]>")) { CheckCancellation(i); i++; }
+            Add(ContextKind.String, start, i);
+            if (i < text.Length) i += 3;
+        }
+
+        private void ScanXamlTag(ref int i)
+        {
+            // Quotes inside a tag always delimit an attribute value (this also covers the values
+            // of an <?xml ... ?> declaration). Markup inside the value, e.g. {Binding Name}, is
+            // treated as part of the value: it only recommends Chinese when the value itself has
+            // Han text, so ordinary English bindings still recommend English.
+            i++;
+            while (i < text.Length)
+            {
+                CheckCancellation(i);
+                char c = text[i];
+                if (c == '"' || c == '\'')
+                {
+                    int start = ++i;
+                    while (i < text.Length && text[i] != c) { CheckCancellation(i); i++; }
+                    Add(ContextKind.String, start, i);
+                    if (i < text.Length) i++;
+                    continue;
+                }
+                if (c == '>') { i++; return; }
+                // Malformed markup (a nested '<' inside a tag): stop and let the outer loop resume.
+                if (c == '<') return;
+                i++;
+            }
+        }
+
+        private void ScanXamlText(ref int i)
+        {
+            int start = i;
+            while (i < text.Length && text[i] != '<') { CheckCancellation(i); i++; }
+            for (int p = start; p < i; p++)
+            {
+                if (!char.IsWhiteSpace(text[p])) { Add(ContextKind.String, start, i); return; }
+            }
+            // Whitespace-only text (indentation / line breaks) is left as code.
         }
 
         private bool IsDigitSeparator(int i)

@@ -1,6 +1,6 @@
 # 实机回归清单
 
-适用于 Smart Input 0.3.3 及后续兼容版本。0.3.3 的发布验证快照包含 143 项自动化测试和现代 / Legacy 双包校验；SSMS 22 + 搜狗拼音已完成部署、加载、菜单、状态栏、T-SQL 上下文及自动 / 手动切换实测。SSMS 22 + 微软拼音、SSMS 18/19/20 以及 Visual Studio 的 T-SQL 编辑器仍需按本清单补测。完整版本与证据见 [验证报告](VALIDATION.md) 和 [发布说明](RELEASE-NOTES.md)。
+适用于 Smart Input 0.3.4 及后续版本。**0.3.4** 为缺陷修复版：① 调试器监视 / 即时 / 快速监视窗口不再出现并遮挡 Smart Input 状态按钮；② 新增 XAML 语言支持；③ 修复从微软拼音手动切换到搜狗拼音后搜狗未被正确识别 / 驱动的问题；④ 新增**状态栏背景色**设置（选项页“外观”分类，默认关闭、默认深灰 `#1E1E1E`、关闭时跟随 VS / SSMS 主题，与状态栏文字颜色独立）；同时让只安装 VS 2026 的机器也能正常构建 VSIX；并核对确认 **SSMS 22 可直接双击 / 运行 `SmartInput.VisualStudio.vsix` 安装**（SSMS 22 自带 VSIX Installer，`tools\Deploy-SSMS22.ps1` 保留为兜底，SSMS 18/19/20 仍走 Legacy 脚本）。自动化测试 177 项全过、退出码 0（0.3.3 为发布一致性修正版，143 项测试全过、无功能变更）。版本脉络：**0.3.0** 在 0.2.1 的 Visual Studio 能力之上新增 Transact-SQL 与 SSMS（18 / 19 / 20 / 22）支持；**0.3.1** 为工程修复版，解决未安装 .NET SDK 时仅 MSBuild + NuGet 即可完整构建的问题；**0.3.2** 按 Pull Request 评审意见补齐了 SSMS 发布载荷打包、部署脚本安全（`-WhatIf` 只读、删除私有注册表前自动备份）与 Release 测试配置，并让 T-SQL 双引号遵循 `SET QUOTED_IDENTIFIER`（新增 OFF 时按字符串处理）；自动化测试（143 项）与双包结构校验已通过。**SSMS 22 已于 2026-10-07 完成首轮实机（部署、加载、菜单、状态栏、T-SQL 上下文识别，以及搜狗拼音自动 / 手动切换均通过，详见下文验证矩阵与 `docs/VALIDATION.md`）；SSMS 22 + 微软拼音以及 SSMS 18/19/20 仍需在装有对应环境的机器上按本清单实测。**
 
 ## 安装之前
 
@@ -20,6 +20,9 @@
 | Visual Studio 2022 / Windows 10 x64 / 微软拼音 | 0.2.1 已通过 |
 | Visual Studio 2026 / Windows 11 x64 / 微软拼音 | 0.2.1 已通过 |
 | Visual Studio 中打开 `.sql`（T-SQL 编辑器） | 待实机验证 |
+| Visual Studio 2026 调试时“监视 / 即时 / 快速监视”窗口 | 0.3.4 已验证（VS 2026 18.10 实机）：0.3.3 基线在即时窗口、快速监视复现按钮覆盖；0.3.4 下三窗口内按钮=0，C# 编辑器仍有按钮 |
+| Visual Studio 2026 打开 `.xaml`（WPF） | 0.3.4 已验证（VS 2026 18.10 实机）：MainWindow.xaml 的 DTE Language=XAML，底部出现状态按钮并随上下文/焦点变化 |
+| Visual Studio / SSMS 22：微软拼音手动切换到搜狗拼音 | 0.3.4 修复：已在 WPF 真实输入法宿主复现（旧 4/4、修复后 3/3 通过）；VS/SSMS 真实宿主待按本清单实测 |
 | SSMS 22（2025，x64）/ 搜狗拼音：部署、MEF 加载、工具菜单、状态栏、代码↔注释上下文识别 | 已通过（2026-10-07，SSMS 22.10.12210.168） |
 | SSMS 22（2025，x64）/ 搜狗拼音：移动光标自动中英文切换、手动 Shift 切换 / 手动覆盖 | 已通过（2026-10-07，物理键盘实测） |
 | SSMS 22（2025，x64）/ 微软拼音 | 待实机验证（欢迎反馈） |
@@ -31,16 +34,14 @@
 
 ## SSMS 部署检查（0.3.0 新增）
 
-1. 普通用户可从主仓库的 [最新版本页面](https://github.com/Ysm-04/SmartInput-for-Visual-Studio/releases/latest) 下载 `SmartInput-SSMS22.zip` / `SmartInput-SSMS-Legacy.zip` 并解压；从源码验证则先运行 `.\build.ps1` 完成双包构建（需要时再用 `tools\Pack-Release.ps1` 生成上述两个 zip）。
-2. 建议先加 `-WhatIf` 只读演练（无需管理员、无需关闭 SSMS，不改动系统），确认目标目录与将要删除 / 备份的缓存无误，例如 `powershell -ExecutionPolicy Bypass -File .\Deploy-SSMS22.ps1 -WhatIf`（Release zip 解压目录下脚本名为 `.\Deploy-SSMS22.ps1`，源码树为 `.\tools\Deploy-SSMS22.ps1`）。
-3. 完全关闭 SSMS（任务管理器确认无 `Ssms.exe`）。
-4. 以管理员 PowerShell 运行对应脚本：
-   - SSMS 22：`tools\Deploy-SSMS22.ps1`（Release zip 解压目录为 `.\Deploy-SSMS22.ps1`）。
-   - SSMS 18/19/20：`tools\Deploy-SSMS-Legacy.ps1`（可加 `-Version 20`；Release zip 解压目录为 `.\Deploy-SSMS-Legacy.ps1`）。
-5. 确认目标目录下文件已平铺（SSMS 22 为 6 个文件，包含 `manifest.json`、`catalog.json`；SSMS 18-20 为 4 个文件）。若原缓存中存在 `privateregistry.bin`，脚本还应输出“已备份私有注册表：...SmartInput-PrivateRegistry-Backup\privateregistry.<时间戳>.bin”；缓存不存在时没有该提示属于正常情况。
+1. 普通用户可直接从 GitHub Release 下载 `SmartInput-SSMS22.zip` / `SmartInput-SSMS-Legacy.zip` 并解压；从源码验证则先运行 `.\build.ps1` 完成双包构建（需要时再用 `tools\Pack-Release.ps1` 生成上述两个 zip）。
+2. **SSMS 22 主路径（直接 VSIX 安装）**：建议先完全关闭 SSMS（任务管理器确认无 `Ssms.exe`；安装器会提示重启目标实例后生效）→ 双击 / 运行 `SmartInput.VisualStudio.vsix`（`SmartInput-SSMS22.zip` 解压后即为该文件）→ 若 VSIX Installer 列出多个产品目标，选择 **SSMS 22**（当前包按用户安装到 `%LocalAppData%\Microsoft\SSMS\22.0_<实例>\Extensions\<随机目录>`，**无需管理员权限**）→ 安装完成后重启 SSMS，确认底部出现 `Smart Input` 状态按钮与工具菜单命令。SSMS 22 自带 `Common7\IDE\VSIXInstaller.exe`，普通 PowerShell 也可直接运行（无需管理员权限）：`& 'C:\Program Files\Microsoft SQL Server Management Studio\22\Release\Common7\IDE\VSIXInstaller.exe' '.\SmartInput.VisualStudio.vsix'`；一般无需再手动清理缓存。
+3. **SSMS 22 兜底（仅在第 2 步不可用时）**：VSIX Installer 未列出 SSMS 22、安装失败，或扩展装了但未加载（状态栏不出现）时，改用 `Deploy-SSMS22.ps1` 平铺部署（需管理员权限，写入 Program Files 的全局扩展目录）。建议先加 `-WhatIf` 只读演练（无需管理员、无需关闭 SSMS，不改动系统），确认目标目录与将要删除 / 备份的缓存无误，例如 `powershell -ExecutionPolicy Bypass -File .\Deploy-SSMS22.ps1 -WhatIf`（Release zip 解压目录下脚本名为 `.\Deploy-SSMS22.ps1`，源码树为 `.\tools\Deploy-SSMS22.ps1`）；确认后以管理员 PowerShell 运行同名脚本并去掉 `-WhatIf`（SSMS 装在自定义目录时加 `-SsmsIdeDir '<IDE 目录>'`）。
+4. **SSMS 18 / 19 / 20（32 位）**：仍需手动平铺部署，不能靠现代 VSIX。完全关闭 SSMS 后以管理员 PowerShell 运行 `tools\Deploy-SSMS-Legacy.ps1`（可加 `-Version 20`；Release zip 解压目录为 `.\Deploy-SSMS-Legacy.ps1`），同样可先加 `-WhatIf` 演练。
+5. 确认**手动部署**脚本输出包含“已备份私有注册表：...SmartInput-PrivateRegistry-Backup\privateregistry.<时间戳>.bin”，且目标目录下文件已平铺（SSMS 22 为 6 个文件含 `manifest.json`、`catalog.json`；SSMS 18-20 为 4 个文件）。直接用 VSIX 安装时可跳过本步。
 6. 启动 SSMS；若未加载，用 `Ssms.exe -log` 启动并查看 `%AppData%\Microsoft\SSMS\<版本>\ActivityLog.xml` 是否有 SmartInput / 程序集加载错误。
-7. 卸载验证：`-Uninstall` 后重启 SSMS，扩展与状态栏应消失。
-8. 注意不要把现代包装进 SSMS 18-20，也不要把 Legacy 包装进 SSMS 22 / Visual Studio，否则会出现“包未正确加载”。
+7. 卸载验证：VSIX 安装的用 VSIX Installer 的卸载入口，或运行 `"<SSMS 22 安装目录>\Common7\IDE\VSIXInstaller.exe" /uninstall:SmartInput.VisualStudio.943daace-d510-4e75-b17c-715cf0602c01`；手动部署的用脚本 `-Uninstall`（`Deploy-SSMS22.ps1 -Uninstall` / `Deploy-SSMS-Legacy.ps1 -Uninstall`）。卸载后重启 SSMS，扩展与状态栏应消失。
+8. 注意不要把现代包装进 SSMS 18-20，也不要把 Legacy 包装进 SSMS 22 / Visual Studio，否则会出现“包未正确加载”；同一宿主上 VSIX 安装与手动平铺部署**二选一**，不要重复部署。
 
 ## T-SQL / SQL 编辑器场景（0.3.0 新增）
 
@@ -62,10 +63,10 @@
 
 ## Visual Studio 场景
 
-- 安装 0.3.3 后重启 VS：扩展管理器显示版本为 0.3.3。
+- 安装 0.3.4 后重启 VS：扩展管理器显示版本为 0.3.4。
 - `工具 > 选项 > Smart Input > 常规`：只显示长期设置，不显示临时暂停项。
 - 修改手动覆盖光标颜色：进入手动覆盖后光标使用新颜色；退出覆盖后恢复原生光标。
-- 修改状态栏文字颜色：启用自定义颜色后底部 `Smart Input` 状态按钮文字变化；关闭后跟随 VS 主题。
+- 修改状态栏文字颜色 / 背景色：分别启用“自定义状态栏文字颜色”“自定义状态栏背景色”后，底部 `Smart Input` 状态按钮的文字 / 背景色随之变化，两者互不影响；关闭对应自定义后跟随 VS 主题（背景色专项验证见下文“状态栏背景色”小节）。
 - 关闭“显示左下角状态栏”：状态按钮消失；`工具 > Smart Input: 暂停自动切换/恢复自动切换` 仍可操作临时暂停。
 - 关闭“启用自动切换”：不读写输入法、不显示手动覆盖光标；工具菜单命令不能绕过总开关。
 - 重新启动 VS：长期设置应保留；临时暂停状态不应保留。
@@ -93,6 +94,45 @@
 - 搜狗拼音与微软拼音共存：只控制当前活动 Profile，不主动激活或切换另一个 Profile。
 - `#if` 非活动代码、复杂宏、C++ 行拼接、C# 插值格式段：记录识别偏差。
 - 大文档和快速输入：不阻塞 UI；旧分析结果不能作用于新快照。
+
+## 0.3.4 新增回归项
+
+### 问题 1：调试器表达式窗口不应被状态按钮遮挡
+
+1. 在 Visual Studio 中打开一个可调试的 C# 项目（`samples/Contexts.cs` 之类），在方法首行下断点并开始调试。
+2. 依次打开“监视 1”（Watch 1）、“即时窗口”（Immediate）、“快速监视”（QuickWatch，需先选中表达式）。逐一点击其表达式输入框，观察窗口内/底部：
+   - 期望：这些窗口内**不再出现** `Smart Input · …` 按钮，不再覆盖表达式输入框；表达式输入、IntelliSense、快速监视求值均正常。
+3. 同时确认普通 C# 文档编辑器底部仍有 `Smart Input · …` 按钮且状态随光标上下文变化（确认修复没有误伤正常文档编辑器）。
+4. 打开一个 `.sql` 查询窗口（SSMS 22 或 VS SQL 编辑器），确认底部状态按钮仍在。
+
+### 问题 2：微软拼音 → 搜狗拼音手动切换
+
+1. 打开 Visual Studio（或 SSMS 22）中的 C# / SQL 编辑器，光标放在注释（期望中文）或代码（期望英文）区域，确认当前活动输入法为微软拼音且自动切换正常。
+2. 用任务栏输入法指示器 / Win+Space 等系统方式**手动切换到搜狗拼音**（不要按 Shift）。
+3. 不按任何 Shift、不移动光标，直接键入：
+   - 期望：状态按钮文字与实际输入态一致，注释区可直接输入中文、代码区直接上屏英文；无需再按 Shift 或来回移动光标。
+4. 反向操作（搜狗拼音 → 微软拼音）重复一次。
+5. 回归：在搜狗拼音下手动 Shift 覆盖、候选窗、Escape、失焦恢复、切换文档仍正常；不主动切换输入法 Profile。
+
+### XAML 支持（0.3.4新增）
+
+1. 用 Visual Studio 打开 WPF 项目的 `.xaml` 文件（可用仓库 `samples/Contexts.xaml`）。
+2. 期望底部出现 `Smart Input · …` 按钮；光标在以下位置时状态栏分别为：
+   - `<!-- 注释 -->` 内：中文 · 注释。
+   - `Text="加载成功"`、`Tag="{Binding 显示名称}"`、元素文本“纯文本内容”：中文 · 字符串。
+   - `x:Name="Btn1"`、纯英文 / 数字 / emoji 属性值、`<?xml ... ?>` 声明、标签名/属性名：英文 · 代码（或英文 · 字符串）。
+   - 标签之间的缩进/换行：英文 · 代码，不应显示字符串。
+3. 在中文属性值、注释中实际键入中文，确认输入法随之切换；切到代码区恢复英文。
+4. XAML 设计器预览界面本身不属于接管范围（不要求出现状态按钮）。
+
+### 状态栏背景色（0.3.4 新增）
+
+1. 打开 `工具 > 选项 > Smart Input > 常规`，在“外观”分类确认新增“自定义状态栏背景色”（默认关闭）与“状态栏背景色”（默认深灰 `#1E1E1E`）。
+2. 勾选“自定义状态栏背景色”并选择一种醒目颜色（如蓝色），确定后底部 `Smart Input` 状态按钮背景立即变为所选颜色。
+3. 同时把“自定义状态栏文字颜色”设为另一种颜色：文字色与背景色分别生效、互不影响；只改其中一项时另一项保持。
+4. 取消勾选“自定义状态栏背景色”：按钮背景恢复为跟随 VS / SSMS 主题；再切换深色 / 浅色主题，确认背景随主题变化。
+5. 重启宿主（Visual Studio 或 SSMS 22）：两项自定义状态与所选颜色均保留（设置写入宿主用户设置）。
+6. 在 SSMS 18/19/20 上按同一路径复测（VS 与各 SSMS 版本共用同一套源码，行为应一致）；状态栏按钮单击暂停 / 恢复不受影响。
 
 ## 记录方式
 

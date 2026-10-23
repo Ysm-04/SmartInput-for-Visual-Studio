@@ -8,7 +8,7 @@ using Task = System.Threading.Tasks.Task;
 namespace SmartInput.VisualStudio
 {
     [PackageRegistration(UseManagedResourcesOnly = true, AllowsBackgroundLoading = true)]
-    [InstalledProductRegistration("Smart Input", "Local input-state switching for Visual Studio and SSMS", "0.3.3")]
+    [InstalledProductRegistration("Smart Input", "Local input-state switching for Visual Studio and SSMS", "0.3.4.1")]
     [ProvideOptionPage(typeof(SmartInputOptionsPage), "Smart Input", "常规", 0, 0, true)]
     [ProvideMenuResource("SmartInputCommands.CTMENU", 1)]
     [Guid(PackageGuidString)]

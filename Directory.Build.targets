@@ -1,0 +1,88 @@
+<Project>
+  <!--
+    1) 自动还原（关键）：
+       只要 obj/project.assets.json 不存在（例如删除了 .packages/packages/obj/bin 之后直接打开 VS 或构建），
+       就在任何引用解析开始之前先执行一次 NuGet Restore。这样 Microsoft.VisualStudio.* 的引用
+       在第一轮设计时构建/编译时就已经就绪，不会出现“还原还没完成 → 满屏 CS0234/CS0246”。
+  -->
+  <Target Name="_SmartInputEnsureRestore"
+          BeforeTargets="ResolveProjectReferences"
+          Condition="'$(_SmartInputRestoring)' != 'true' and !Exists('$(MSBuildProjectExtensionsPath)project.assets.json')">
+    <MSBuild Projects="$(MSBuildProjectFullPath)"
+             Targets="Restore"
+             Properties="_SmartInputRestoring=true"
+             BuildInParallel="false" />
+    <PropertyGroup>
+      <ProjectLockFile>$(MSBuildProjectExtensionsPath)project.assets.json</ProjectLockFile>
+      <ProjectAssetsFile>$(MSBuildProjectExtensionsPath)project.assets.json</ProjectAssetsFile>
+    </PropertyGroup>
+  </Target>
+
+  <!--
+    2) 设计时兜底提示：如果仍没有解析到 VSSDK 引用（还原失败/离线），给一条明确警告，
+       避免让人误以为是代码或引用写错。
+  -->
+  <Target Name="_SmartInputWarnMissingVsSdkReferences"
+          AfterTargets="ResolveAssemblyReferences"
+          Condition="'$(DesignTimeBuild)' == 'true' and ('$(MSBuildProjectName)' == 'SmartInput.VisualStudio' or '$(MSBuildProjectName)' == 'SmartInput.Ssms.Legacy')">
+    <ItemGroup>
+      <_SmartInputResolvedVsSdk Include="@(ReferencePath)"
+                                Condition="$([System.String]::Copy('%(Filename)').StartsWith('Microsoft.VisualStudio.Shell'))" />
+    </ItemGroup>
+    <Warning Condition="'@(_SmartInputResolvedVsSdk)' == ''"
+             Code="SI0001"
+             Text="没有解析到任何 Microsoft.VisualStudio.* 引用：NuGet 还原尚未完成或失败。请检查网络/NuGet 源后重新还原（或重新打开解决方案）。" />
+  </Target>
+
+  <!--
+    3) 与 Microsoft.VisualStudio.SDK.EmbedInteropTypes 包等价的行为：
+       把 Shell.Interop / TextManager.Interop / Imaging.Interop 等互操作程序集标记为
+       EmbedInteropTypes=true，保证编译结果与原来一致（即使包里的 props 尚未导入也生效）。
+  -->
+  <Target Name="LinkVSSDKEmbeddableAssemblies" AfterTargets="ResolveReferences" BeforeTargets="FindReferenceAssembliesForReferences">
+      <ItemGroup>
+        <ReferencePath Condition="
+                '%(FileName)' == 'Microsoft.VisualStudio.Imaging.Interop.14.0.DesignTime'
+             or '%(FileName)' == 'Microsoft.VisualStudio.Imaging.Interop.15.0.DesignTime'
+             or '%(FileName)' == 'Microsoft.VisualStudio.Setup.Configuration.Interop'
+             or '%(FileName)' == 'Microsoft.VisualStudio.Shell.Embeddable'
+             or '%(FileName)' == 'Microsoft.VisualStudio.Shell.Interop.10.0'
+             or '%(FileName)' == 'Microsoft.VisualStudio.Shell.Interop.11.0'
+             or '%(FileName)' == 'Microsoft.VisualStudio.Shell.Interop.12.0'
+             or '%(FileName)' == 'Microsoft.VisualStudio.Shell.Interop.12.1.DesignTime'
+             or '%(FileName)' == 'Microsoft.VisualStudio.Shell.Interop.14.0.DesignTime'
+             or '%(FileName)' == 'Microsoft.VisualStudio.Shell.Interop.15.0.DesignTime'
+             or '%(FileName)' == 'Microsoft.VisualStudio.Shell.Interop.15.3.DesignTime'
+             or '%(FileName)' == 'Microsoft.VisualStudio.Shell.Interop.15.5.DesignTime'
+             or '%(FileName)' == 'Microsoft.VisualStudio.Shell.Interop.15.6.DesignTime'
+             or '%(FileName)' == 'Microsoft.VisualStudio.TextManager.Interop.11.0'
+             or '%(FileName)' == 'Microsoft.VisualStudio.TextManager.Interop.12.0'
+             or '%(FileName)' == 'Microsoft.VisualStudio.TextManager.Interop.12.1.DesignTime'
+             or '%(FileName)' == 'Microsoft.VisualStudio.TextManager.Interop.14.2.DesignTime'
+             or '%(FileName)' == 'Microsoft.VisualStudio.TextManager.Interop.15.1.DesignTime'
+             or '%(FileName)' == 'Microsoft.VisualStudio.Feedback.Interop.12.0.DesignTime'
+             or '%(FileName)' == 'Microsoft.VisualStudio.ProjectSystem.Interop'
+             or '%(FileName)' == 'NuGet.VisualStudio'
+             or '%(FileName)' == 'stdole'
+             or '%(FileName)' == 'microsoft.visualstudio.designer.interfaces'
+             or '%(FileName)' == 'EnvDTE80'
+             or '%(FileName)' == 'EnvDTE90'
+             or '%(FileName)' == 'EnvDTE100'
+             or '%(FileName)' == 'Microsoft.VisualStudio.CommandBars'
+             or '%(FileName)' == 'Microsoft.Internal.VisualStudio.Appid.Interop.10.0.DesignTime'
+             or '%(FileName)' == 'Microsoft.Internal.VisualStudio.Shell.Interop.10.0.DesignTime'
+             or '%(FileName)' == 'Microsoft.Internal.VisualStudio.Shell.Interop.11.0.DesignTime'
+             or '%(FileName)' == 'Microsoft.Internal.VisualStudio.Shell.Interop.14.0.DesignTime'
+             or '%(FileName)' == 'Microsoft.Internal.VisualStudio.Shell.Interop.14.1.DesignTime'
+             or '%(FileName)' == 'Microsoft.Internal.VisualStudio.Shell.Interop.14.2.DesignTime'
+             or '%(FileName)' == 'Microsoft.Internal.VisualStudio.Shell.Interop.15.5.DesignTime'
+             or '%(FileName)' == 'Microsoft.Internal.VisualStudio.Shell.Embeddable'
+             or '%(FileName)' == 'Microsoft.VisualStudio.LicenseManagement.Interop.12.0.DesignTime'
+             or '%(FileName)' == 'Microsoft.VisualStudio.LicenseManagement.Interop.12.1.DesignTime'
+             or '%(FileName)' == 'Microsoft.VisualStudio.LicenseManagement.Interop.14.0.DesignTime'
+                ">
+          <EmbedInteropTypes>true</EmbedInteropTypes>
+        </ReferencePath>
+      </ItemGroup>
+    </Target>
+</Project>

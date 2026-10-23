@@ -1,12 +1,18 @@
 ﻿<#
 .SYNOPSIS
-    将 Smart Input 手动部署到 SQL Server Management Studio 22（即 SSMS 2025，64 位）。
+    将 Smart Input 手动部署（平铺）到 SQL Server Management Studio 22（即 SSMS 2025，64 位），
+    或卸载早先由本脚本部署的副本。
 
 .DESCRIPTION
-    SSMS 18 及更高版本不运行 VSIXInstaller，第三方扩展需要把文件平铺到
-    Common7\IDE\Extensions 下的独立子目录，并清理 MEF / 私有注册表缓存后才会被发现。
-    本脚本把现代包（VSSDK 17，x64）构建出的 .vsix（本质是 zip）解压并平铺为
-    SSMS 22 所需的文件，然后清理缓存。
+    SSMS 22 自带 VSIX Installer，通常直接运行 SmartInput.VisualStudio.vsix 即可安装，本脚本不是
+    首选安装方式。以下情况使用本脚本：
+      - VSIX Installer 未列出 SSMS 22，或安装失败；
+      - 需要离线 / 集中部署，或修复“已安装但未加载”的 MEF 缓存问题；
+      - 卸载早先由本脚本平铺部署的副本（-Uninstall）。
+    SSMS 18/19/20（32 位 Legacy 包）不使用本脚本，请改用 Deploy-SSMS-Legacy.ps1。
+
+    脚本把现代包（VSSDK 17，x64）构建出的 .vsix（本质是 zip）解压并平铺为
+    SSMS 22 所需的文件，然后清理 MEF / 私有注册表缓存。
 
     脚本支持 -WhatIf 演练：加上 -WhatIf 时只打印将要执行的操作，不会删除、覆盖或写入
     任何文件（包括私有注册表与 MEF 缓存），也不要求管理员权限或关闭 SSMS。

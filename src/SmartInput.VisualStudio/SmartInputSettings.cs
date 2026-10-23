@@ -16,9 +16,12 @@ namespace SmartInput.VisualStudio
         public Color ManualCaretColor { get; set; }
         public bool UseCustomStatusTextColor { get; set; }
         public Color StatusTextColor { get; set; }
+        public bool UseCustomStatusBackgroundColor { get; set; }
+        public Color StatusBackgroundColor { get; set; }
 
         public WpfColor ManualCaretWpfColor => ToWpf(ManualCaretColor);
         public WpfColor StatusTextWpfColor => ToWpf(StatusTextColor);
+        public WpfColor StatusBackgroundWpfColor => ToWpf(StatusBackgroundColor);
 
         public static SmartInputSettingsSnapshot Defaults()
         {
@@ -29,7 +32,9 @@ namespace SmartInput.VisualStudio
                 StatusMarginVisible = true,
                 ManualCaretColor = Color.Red,
                 UseCustomStatusTextColor = false,
-                StatusTextColor = Color.White
+                StatusTextColor = Color.White,
+                UseCustomStatusBackgroundColor = false,
+                StatusBackgroundColor = Color.FromArgb(0x1E, 0x1E, 0x1E)
             };
         }
 
@@ -42,7 +47,9 @@ namespace SmartInput.VisualStudio
                 StatusMarginVisible = StatusMarginVisible,
                 ManualCaretColor = ManualCaretColor,
                 UseCustomStatusTextColor = UseCustomStatusTextColor,
-                StatusTextColor = StatusTextColor
+                StatusTextColor = StatusTextColor,
+                UseCustomStatusBackgroundColor = UseCustomStatusBackgroundColor,
+                StatusBackgroundColor = StatusBackgroundColor
             };
         }
 
@@ -72,6 +79,8 @@ namespace SmartInput.VisualStudio
         private const string ManualCaretColorName = "ManualCaretColor";
         private const string UseCustomStatusTextColorName = "UseCustomStatusTextColor";
         private const string StatusTextColorName = "StatusTextColor";
+        private const string UseCustomStatusBackgroundColorName = "UseCustomStatusBackgroundColor";
+        private const string StatusBackgroundColorName = "StatusBackgroundColor";
 
         private static readonly object Gate = new object();
         private static IServiceProvider serviceProvider;
@@ -131,7 +140,9 @@ namespace SmartInput.VisualStudio
                 && left.StatusMarginVisible == right.StatusMarginVisible
                 && left.ManualCaretColor.ToArgb() == right.ManualCaretColor.ToArgb()
                 && left.UseCustomStatusTextColor == right.UseCustomStatusTextColor
-                && left.StatusTextColor.ToArgb() == right.StatusTextColor.ToArgb();
+                && left.StatusTextColor.ToArgb() == right.StatusTextColor.ToArgb()
+                && left.UseCustomStatusBackgroundColor == right.UseCustomStatusBackgroundColor
+                && left.StatusBackgroundColor.ToArgb() == right.StatusBackgroundColor.ToArgb();
         }
 
         private static SmartInputSettingsSnapshot LoadFromStorage()
@@ -145,7 +156,9 @@ namespace SmartInput.VisualStudio
                 StatusMarginVisible = GetBoolean(store, StatusMarginVisibleName, defaults.StatusMarginVisible),
                 ManualCaretColor = SmartInputSettingsSnapshot.FromHex(GetString(store, ManualCaretColorName, SmartInputSettingsSnapshot.ToHex(defaults.ManualCaretColor)), defaults.ManualCaretColor),
                 UseCustomStatusTextColor = GetBoolean(store, UseCustomStatusTextColorName, defaults.UseCustomStatusTextColor),
-                StatusTextColor = SmartInputSettingsSnapshot.FromHex(GetString(store, StatusTextColorName, SmartInputSettingsSnapshot.ToHex(defaults.StatusTextColor)), defaults.StatusTextColor)
+                StatusTextColor = SmartInputSettingsSnapshot.FromHex(GetString(store, StatusTextColorName, SmartInputSettingsSnapshot.ToHex(defaults.StatusTextColor)), defaults.StatusTextColor),
+                UseCustomStatusBackgroundColor = GetBoolean(store, UseCustomStatusBackgroundColorName, defaults.UseCustomStatusBackgroundColor),
+                StatusBackgroundColor = SmartInputSettingsSnapshot.FromHex(GetString(store, StatusBackgroundColorName, SmartInputSettingsSnapshot.ToHex(defaults.StatusBackgroundColor)), defaults.StatusBackgroundColor)
             };
         }
 
@@ -159,6 +172,8 @@ namespace SmartInput.VisualStudio
             store.SetString(Collection, ManualCaretColorName, SmartInputSettingsSnapshot.ToHex(settings.ManualCaretColor));
             store.SetBoolean(Collection, UseCustomStatusTextColorName, settings.UseCustomStatusTextColor);
             store.SetString(Collection, StatusTextColorName, SmartInputSettingsSnapshot.ToHex(settings.StatusTextColor));
+            store.SetBoolean(Collection, UseCustomStatusBackgroundColorName, settings.UseCustomStatusBackgroundColor);
+            store.SetString(Collection, StatusBackgroundColorName, SmartInputSettingsSnapshot.ToHex(settings.StatusBackgroundColor));
         }
 
         private static bool GetBoolean(WritableSettingsStore store, string name, bool fallback)
@@ -220,6 +235,18 @@ namespace SmartInput.VisualStudio
         [DefaultValue(typeof(Color), "White")]
         public Color StatusTextColor { get; set; } = Color.White;
 
+        [Category("外观")]
+        [DisplayName("自定义状态栏背景色")]
+        [Description("关闭时状态栏背景跟随 Visual Studio / SSMS 主题；开启后使用下面的颜色。")]
+        [DefaultValue(false)]
+        public bool UseCustomStatusBackgroundColor { get; set; }
+
+        [Category("外观")]
+        [DisplayName("状态栏背景色")]
+        [Description("仅在启用自定义状态栏背景色时生效。默认深灰 #1E1E1E，适合白色文字。")]
+        [DefaultValue(typeof(Color), "30, 30, 30")]
+        public Color StatusBackgroundColor { get; set; } = Color.FromArgb(0x1E, 0x1E, 0x1E);
+
         public override void LoadSettingsFromStorage()
         {
             FromSnapshot(SmartInputSettings.Current);
@@ -243,7 +270,9 @@ namespace SmartInput.VisualStudio
                 StatusMarginVisible = StatusMarginVisible,
                 ManualCaretColor = ManualCaretColor,
                 UseCustomStatusTextColor = UseCustomStatusTextColor,
-                StatusTextColor = StatusTextColor
+                StatusTextColor = StatusTextColor,
+                UseCustomStatusBackgroundColor = UseCustomStatusBackgroundColor,
+                StatusBackgroundColor = StatusBackgroundColor
             };
         }
 
@@ -254,6 +283,8 @@ namespace SmartInput.VisualStudio
             ManualCaretColor = settings.ManualCaretColor;
             UseCustomStatusTextColor = settings.UseCustomStatusTextColor;
             StatusTextColor = settings.StatusTextColor;
+            UseCustomStatusBackgroundColor = settings.UseCustomStatusBackgroundColor;
+            StatusBackgroundColor = settings.StatusBackgroundColor;
         }
     }
 }

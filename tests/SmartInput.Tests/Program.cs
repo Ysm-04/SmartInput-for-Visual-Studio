@@ -73,7 +73,9 @@ namespace SmartInput.Tests
             CSharp("C#空原始字符串后", "var s = \"\"\"\"\"\";¦", ContextKind.Code, InputMode.English);
 
             SqlTests();
+            XamlTests();
             PolicyTests();
+            ImeResyncTests();
             InputMethodProfileTests();
             RobustnessTests();
             CaretColorTests.Run(Check);
@@ -83,6 +85,7 @@ namespace SmartInput.Tests
 
         private static void CSharp(string name, string marked, ContextKind kind, InputMode mode) => Case(name, marked, kind, mode, SourceLanguage.CSharp);
         private static void Sql(string name, string marked, ContextKind kind, InputMode mode) => Case(name, marked, kind, mode, SourceLanguage.Sql);
+        private static void Xaml(string name, string marked, ContextKind kind, InputMode mode) => Case(name, marked, kind, mode, SourceLanguage.Xaml);
         private static void Case(string name, string marked, ContextKind kind, InputMode mode, SourceLanguage language = SourceLanguage.Cpp)
         {
             Check(name, () =>
@@ -134,6 +137,93 @@ namespace SmartInput.Tests
             Sql("SQL括号后字符串中文", "[t] SET @s = '加¦载'", ContextKind.String, InputMode.Chinese);
             Sql("SQL仅emoji字符串", "'😀¦'", ContextKind.String, InputMode.English);
             Sql("SQL扩展区汉字", "'\U00020000¦'", ContextKind.String, InputMode.Chinese);
+        }
+
+
+        private static void XamlTests()
+        {
+            Xaml("XAML空文件", "¦", ContextKind.Code, InputMode.English);
+            Xaml("XAML标签名", "<Butt¦on Content=\"确定\"/>", ContextKind.Code, InputMode.English);
+            Xaml("XAML属性名", "<Button Content¦=\"确定\"/>", ContextKind.Code, InputMode.English);
+            Xaml("XAML英文属性值", "<Button x:Name=\"Btn¦1\"/>", ContextKind.String, InputMode.English);
+            Xaml("XAML中文属性值", "<TextBlock Text=\"加载¦成功\"/>", ContextKind.String, InputMode.Chinese);
+            Xaml("XAML中文属性值开头", "<TextBlock Text=\"¦中文\"/>", ContextKind.String, InputMode.Chinese);
+            Xaml("XAML空属性值", "<TextBlock Text=\"¦\"/>", ContextKind.String, InputMode.English);
+            Xaml("XAML单引号中文属性值", "<TextBlock Text='中¦文'/>", ContextKind.String, InputMode.Chinese);
+            Xaml("XAML实体英文属性值", "<TextBlock Text=\"A&amp;¦B\"/>", ContextKind.String, InputMode.English);
+            Xaml("XAML仅emoji属性值", "<TextBlock Text=\"😀¦\"/>", ContextKind.String, InputMode.English);
+            Xaml("XAML中文注释", "<!-- ¦中文注释 -->", ContextKind.Comment, InputMode.Chinese);
+            Xaml("XAML英文注释也中文", "<!-- TO¦DO -->", ContextKind.Comment, InputMode.Chinese);
+            Xaml("XAML注释内标签", "<!-- <Button/> ¦-->", ContextKind.Comment, InputMode.Chinese);
+            Xaml("XAML未闭合注释", "<!-- 中文¦", ContextKind.Comment, InputMode.Chinese);
+            Xaml("XAML注释结束", "<!-- 中文 -->¦<Grid>", ContextKind.Code, InputMode.English);
+            Xaml("XAML元素文本中文", "<TextBlock>加¦载</TextBlock>", ContextKind.String, InputMode.Chinese);
+            Xaml("XAML元素文本英文", "<TextBlock>Lo¦ad</TextBlock>", ContextKind.String, InputMode.English);
+            Xaml("XAML元素文本结束", "<TextBlock>中文</TextBlock>¦", ContextKind.Code, InputMode.English);
+            Xaml("XAML缩进为代码", "<Grid>\r\n    ¦<Button/>", ContextKind.Code, InputMode.English);
+            Xaml("XAML标签内空格", "<Button ¦/>", ContextKind.Code, InputMode.English);
+            Xaml("XAML未闭合标签", "<Grid ¦", ContextKind.Code, InputMode.English);
+            Xaml("XAMLCDATA中文", "<![CDATA[中文¦文本]]>", ContextKind.String, InputMode.Chinese);
+            Xaml("XAMLCDATA英文", "<![CDATA[ab¦c]]>", ContextKind.String, InputMode.English);
+            Xaml("XAML标记扩展英文", "<TextBlock Text=\"{Binding Name¦}\"/>", ContextKind.String, InputMode.English);
+            Xaml("XAML标记扩展中文", "<TextBlock Text=\"{Binding 名¦称}\"/>", ContextKind.String, InputMode.Chinese);
+            Xaml("XAML XML声明后", "<?xml version=\"1.0\" encoding=\"utf-8\"?>¦", ContextKind.Code, InputMode.English);
+            Xaml("XAML多个属性中文值", "<TextBlock Text=\"中文\" Tag=\"标签¦\"/>", ContextKind.String, InputMode.Chinese);
+            Xaml("XAML自闭合后换行", "<Button/>\r\n¦<Grid/>", ContextKind.Code, InputMode.English);
+        }
+
+        private static void ImeResyncTests()
+        {
+            Check("重同步：未切换输入法不强制写入", () =>
+            {
+                var policy = new ImeResyncPolicy();
+                Assert(!policy.ShouldForceWrite(InputMode.English, InputMode.English));
+                Assert(!policy.ShouldForceWrite(InputMode.Chinese, InputMode.English));
+            });
+            Check("重同步：切换输入法后连续写入三次", () =>
+            {
+                var policy = new ImeResyncPolicy();
+                policy.NoteActiveInputMethodChanged();
+                Assert(policy.IsPending);
+                Assert(policy.ShouldForceWrite(InputMode.English, InputMode.English));
+                Assert(policy.ShouldForceWrite(InputMode.English, InputMode.English));
+                Assert(policy.ShouldForceWrite(InputMode.English, InputMode.English));
+                Assert(!policy.IsPending);
+                Assert(!policy.ShouldForceWrite(InputMode.English, InputMode.English));
+            });
+            Check("重同步：切换输入法后状态不一致照常写入", () =>
+            {
+                var policy = new ImeResyncPolicy();
+                policy.NoteActiveInputMethodChanged();
+                Assert(policy.ShouldForceWrite(InputMode.English, InputMode.Chinese));
+            });
+            Check("重同步：未知状态不消耗待处理标记", () =>
+            {
+                var policy = new ImeResyncPolicy();
+                policy.NoteActiveInputMethodChanged();
+                Assert(!policy.ShouldForceWrite(InputMode.Unknown, InputMode.Chinese));
+                Assert(policy.IsPending);
+                Assert(policy.ShouldForceWrite(InputMode.English, InputMode.Chinese));
+            });
+            Check("重同步：Reset 清除待处理标记", () =>
+            {
+                var policy = new ImeResyncPolicy();
+                policy.NoteActiveInputMethodChanged();
+                policy.Reset();
+                Assert(!policy.IsPending);
+                Assert(!policy.ShouldForceWrite(InputMode.English, InputMode.English));
+            });
+            Check("重同步：连续两次切换各自写入三次", () =>
+            {
+                var policy = new ImeResyncPolicy();
+                policy.NoteActiveInputMethodChanged();
+                Assert(policy.ShouldForceWrite(InputMode.Chinese, InputMode.Chinese));
+                policy.NoteActiveInputMethodChanged();
+                Assert(policy.ShouldForceWrite(InputMode.Chinese, InputMode.Chinese));
+                Assert(policy.ShouldForceWrite(InputMode.Chinese, InputMode.Chinese));
+                Assert(policy.ShouldForceWrite(InputMode.Chinese, InputMode.Chinese));
+                Assert(!policy.ShouldForceWrite(InputMode.Chinese, InputMode.Chinese));
+            });
         }
 
         private static void PolicyTests()

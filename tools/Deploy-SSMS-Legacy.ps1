@@ -1,9 +1,9 @@
-﻿<#
+<#
 .SYNOPSIS
     将 Smart Input 手动部署到 32 位的 SQL Server Management Studio 18 / 19 / 20（即“SSMS 2022”这一代）。
 
 .DESCRIPTION
-    SSMS 18、19、20 基于 Visual Studio 2017 独立 Shell（VSSDK 15，32 位），不运行 VSIXInstaller。
+    SSMS 18、19、20 基于 Visual Studio 2017 独立 Shell（VSSDK 15，32 位），不支持通过现代 VSIX 安装。
     需要把为 VSSDK 15 编译的 AnyCPU 程序集、手写的 .pkgdef 与 v1(2010) 清单平铺到
     Common7\IDE\Extensions 下的独立子目录，并清理私有注册表 / MEF 缓存后才会被发现。
 

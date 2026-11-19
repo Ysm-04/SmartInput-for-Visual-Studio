@@ -2,9 +2,11 @@
 
 作者：**我在人间做废物**（[@Ysm-04](https://github.com/Ysm-04)）
 
-## 0.3.4
+当前稳定版本及安装包以主仓库的 [Releases](https://github.com/Ysm-04/SmartInput-for-Visual-Studio/releases) 为准。
 
-状态：缺陷修复版。修复用户反馈的两处问题，并新增XAML语言支持和状态栏背景色设置、核对 SSMS 22 直接 VSIX 安装方式，同时让构建在只安装 Visual Studio 2026 的机器上也能正常产出 VSIX；自动化测试由 143 项增至 **177 项**。
+## [0.3.4](https://github.com/Ysm-04/SmartInput-for-Visual-Studio/releases/tag/v0.3.4)
+
+状态：缺陷修复版。修复用户反馈的两处问题，并新增 XAML 语言支持和状态栏背景色设置、核对 SSMS 22 直接 VSIX 安装方式，同时让构建在只安装 Visual Studio 2026 的机器上也能正常产出 VSIX；自动化测试由 143 项增至 **177 项**。
 
 ### 修复
 
@@ -19,7 +21,7 @@
 
 - **状态栏背景色可配置**：`工具 > 选项 > Smart Input > 常规` 的“外观”分类新增两项设置——“自定义状态栏背景色”（布尔，默认关闭）与“状态栏背景色”（颜色，默认深灰 `#1E1E1E`）。关闭自定义时状态栏按钮背景跟随 VS / SSMS 主题；开启后使用所选颜色。它与既有的“自定义状态栏文字颜色”/“状态栏文字颜色”相互独立，可分别设置。设置写入宿主用户设置；Visual Studio 与 SSMS 22、SSMS 18/19/20 使用同一套源码，行为一致。状态栏按钮仍可单击暂停 / 恢复，暂停 / 恢复菜单与隐私边界均无变化；本轮未新增自动化用例，测试总数保持 177 项。
 - **新增 XAML 语言支持**：C# WPF 项目的 `.xaml` 文件现在由扩展接管：`<!-- -->` 注释推荐中文；双引号 / 单引号属性值（含 `Text="加载成功"`、`Tag="{Binding 显示名称}"`）、元素文本内容与 `<![CDATA[...]]>` 按是否含汉字推荐中文 / 英文；元素名、属性名、命名空间与 `<?xml ... ?>` 声明按代码推荐英文；标签之间纯缩进空白保持代码，不误报字符串。新增 `ContentType("XAML")` 接入、`samples/Contexts.xaml` 样例与 28 项 XAML 词法用例。
-- **SSMS 22 安装方式核对与文档修正**：实机核对确认 **SSMS 22 直接运行 / 双击 `SmartInput.VisualStudio.vsix` 即可安装**——SSMS 22 自带 `Common7\IDE\VSIXInstaller.exe`（与 VS 2026 同一代安装器），且本扩展 VSIX 清单已声明 `Microsoft.VisualStudio.Ssms [21.0,23.0)` amd64 安装目标；安装器列出多个产品目标时选择 SSMS 22；当前包未启用 AllUsers，安装器按**当前用户**把文件放到 `%LocalAppData%\Microsoft\SSMS\22.0_<实例>\Extensions\<随机目录>`，**无需管理员权限**。建议安装前关闭 SSMS、安装后重启即可加载，VSIX 安装一般无需再手动清缓存（实机安装记录见 `0.3.4-验证证据/ssms/`）。`tools\Deploy-SSMS22.ps1`（解压 VSIX、平铺到 `Common7\IDE\Extensions\SmartInput`、清理私有注册表 / MEF 缓存、写 `extensions.configurationchanged`）保留为**兜底 / 集中部署 / 缓存修复**方式：VSIX Installer 未列出 SSMS 22、安装失败，或扩展装了但未加载时使用。**SSMS 18 / 19 / 20（32 位，旧隔离 Shell）仍需 `SmartInput-SSMS-Legacy.zip` 中的 `Deploy-SSMS-Legacy.ps1` 手动平铺部署**，不能靠现代 VSIX。README、VALIDATION、MANUAL-TESTS 与交付说明中“SSMS 22 必须手动部署”的过时表述已一并改正（SSMS 22 可直接用自带 VSIX Installer 安装；SSMS 18/19/20 仍只用手动平铺部署）。
+- **SSMS 22 安装方式核对与文档修正**：实机核对确认 **SSMS 22 直接运行 / 双击 `SmartInput.VisualStudio.vsix` 即可安装**——SSMS 22 自带 `Common7\IDE\VSIXInstaller.exe`（与 VS 2026 同一代安装器），且本扩展 VSIX 清单已声明 `Microsoft.VisualStudio.Ssms [21.0,23.0)` amd64 安装目标；安装器列出多个产品目标时选择 SSMS 22；当前包未启用 AllUsers，安装器按**当前用户**把文件放到 `%LocalAppData%\Microsoft\SSMS\22.0_<实例>\Extensions\<随机目录>`，**无需管理员权限**。建议安装前关闭 SSMS、安装后重启即可加载，VSIX 安装一般无需再手动清缓存。`tools\Deploy-SSMS22.ps1`（解压 VSIX、平铺到 `Common7\IDE\Extensions\SmartInput`、清理私有注册表 / MEF 缓存、写 `extensions.configurationchanged`）保留为**兜底 / 集中部署 / 缓存修复**方式：VSIX Installer 未列出 SSMS 22、安装失败，或扩展装了但未加载时使用。**SSMS 18 / 19 / 20（32 位，旧隔离 Shell）仍需 `SmartInput-SSMS-Legacy.zip` 中的 `Deploy-SSMS-Legacy.ps1` 手动平铺部署**，不能靠现代 VSIX。README、VALIDATION、MANUAL-TESTS 与交付说明中“SSMS 22 必须手动部署”的过时表述已一并改正（SSMS 22 可直接用自带 VSIX Installer 安装；SSMS 18/19/20 仍只用手动平铺部署）。
 - 卸载入口补充：VSIX Installer 的卸载入口，或 `VSIXInstaller.exe /uninstall:SmartInput.VisualStudio.943daace-d510-4e75-b17c-715cf0602c01`，或 `Deploy-SSMS22.ps1 -Uninstall` 清理手动部署副本。VSIX 安装与手动部署二选一，不要重复部署。
 
 ### 构建与工程
@@ -43,14 +45,14 @@ Release 干净重建 0 错误，**177 项自动化测试全部通过、0 失败*
 
 - **问题 1（VS 2026 18.10.12201.205 实机）**：0.3.3 基线在调试中断态的**即时窗口**底部、**快速监视**“监视表达式”输入框下方复现 `Smart Input` 状态按钮覆盖；0.3.4 部署后同一场景下监视 1 / 即时窗口 / 快速监视内按钮数均为 **0**，普通 C# 文档编辑器仍显示 `Smart Input · 自动 · 英文 · 代码`。
 - **问题 2（真实输入法 WPF 宿主 + 真实微软拼音/搜狗拼音）**：旧 0.3.3 逻辑在“微软拼音(英文) → 搜狗拼音(中文)”后 4/4 跳过写入、实际仍中文（状态栏正确但没切）；0.3.4 重同步后 8/8 实际键入立即一致，无需 Shift；反向方向、一次性语义、Unknown 边界均验证通过。另在 **真实 VS 2026 + 0.3.4** 上完成三轮实机回执：代码区两个方向切换后直接键入英文正确；注释区切换后 **Sogou 中文候选窗正常弹出**、状态显示“组词中，暂不切换”→提交后“自动 · 中文 · 注释”，均无需手动按 Shift。
-- **XAML语言支持（VS 2026 实机）**：打开 WPF 样例 `MainWindow.xaml` 后 DTE 报告 Language=**XAML**，XAML 标记文本视图底部出现 `Smart Input` 状态按钮，点击正文获得焦点后显示“自动 · 英文 · 代码”，并可随光标所在 XAML 上下文切换。
+- **XAML 语言支持（VS 2026 实机）**：打开 WPF 样例 `MainWindow.xaml` 后 DTE 报告 Language=**XAML**，XAML 标记文本视图底部出现 `Smart Input` 状态按钮，点击正文获得焦点后显示“自动 · 英文 · 代码”，并可随光标所在 XAML 上下文切换。
 
-完整证据（UIA 树、截图、对照矩阵、WPF 输入法宿主日志）见交付包 `0.3.4-验证证据/`。
+详细验证记录与回归项见 [验证报告](VALIDATION.md) 与 [实机回归清单](MANUAL-TESTS.md)。
 
 ---
-## 0.3.3
+## [0.3.3](https://github.com/Ysm-04/SmartInput-for-Visual-Studio/releases/tag/v0.3.3)
 
-状态：**发布一致性修正版，无功能变更**。修复 0.3.2 的发布标签与三份资产停留在早期提交 `4f5b9e8`、未包含 `tools/Pack-Release.ps1` 打包脚本修复（U+2011 非 ASCII 连字符、`build.ps1` 根目录路径）的问题。本版本在**同一提交**上完成干净构建、打标签与发布，确保“发布标签 = 构建提交 = 三份资产”三者完全对应、可追溯。
+状态：**发布一致性修正版，无功能变更**。修复 0.3.2 的发布标签与三份资产停留在早期提交 `4f5b9e8`、未包含 `tools/Pack-Release.ps1` 打包脚本修复（U+2011 非 ASCII 连字符、`build.ps1` 根目录路径）的问题。主仓库标签 `v0.3.3` 指向构建提交 `7a68d66`，确保“发布标签 = 构建提交 = 三份资产”三者完全对应、可追溯。
 
 ### 变更
 

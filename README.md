@@ -4,9 +4,9 @@
 
 作者：**我在人间做废物**（[@Ysm-04](https://github.com/Ysm-04)）
 
-[项目主页](https://github.com/Di-Y/SmartInput-for-Visual-Studio-and-SSMS) · [最新版本](https://github.com/Di-Y/SmartInput-for-Visual-Studio-and-SSMS/releases/latest) · [全部版本](https://github.com/Di-Y/SmartInput-for-Visual-Studio-and-SSMS/releases) · [问题反馈](https://github.com/Di-Y/SmartInput-for-Visual-Studio-and-SSMS/issues) · [提交贡献](https://github.com/Di-Y/SmartInput-for-Visual-Studio-and-SSMS/pulls)
+[项目主页](https://github.com/Ysm-04/SmartInput-for-Visual-Studio) · [最新版本](https://github.com/Ysm-04/SmartInput-for-Visual-Studio/releases/latest) · [全部版本](https://github.com/Ysm-04/SmartInput-for-Visual-Studio/releases) · [问题反馈](https://github.com/Ysm-04/SmartInput-for-Visual-Studio/issues) · [提交贡献](https://github.com/Ysm-04/SmartInput-for-Visual-Studio/pulls)
 
-当前稳定版本为 **[v0.3.4](https://github.com/Di-Y/SmartInput-for-Visual-Studio-and-SSMS/releases/tag/0.3.4)**。扩展完全在本地运行，不联网，不采集源码、按键或候选词。
+当前稳定版本为 **[v0.3.4](https://github.com/Ysm-04/SmartInput-for-Visual-Studio/releases/tag/v0.3.4)**。扩展完全在本地运行，不联网，不采集源码、按键或候选词。
 
 v0.3.4 为缺陷修复版，主要变化：
 
@@ -18,7 +18,7 @@ v0.3.4 为缺陷修复版，主要变化：
 
 ## 快速下载
 
-普通用户无需自行构建。请从 [最新版本页面](https://github.com/Di-Y/SmartInput-for-Visual-Studio-and-SSMS/releases/latest) 按宿主下载对应资产：
+普通用户无需自行构建。请从 [最新版本页面](https://github.com/Ysm-04/SmartInput-for-Visual-Studio/releases/latest) 按宿主下载对应资产：
 
 | 宿主 | 下载资产 | 安装方式 |
 | --- | --- | --- |
@@ -48,7 +48,7 @@ v0.3.4 为缺陷修复版，主要变化：
 
 ![SSMS Smart Input 自动切换输入法演示](docs/assets/SSMS.gif)
 
-![SSMS Smart Input 自动切换输入法演示](docs/assets/XAML.gif)
+![XAML Smart Input 自动切换输入法演示](docs/assets/XAML.gif)
 
 ## 主要功能
 
@@ -149,11 +149,11 @@ XAML 规则（0.3.4 新增）：
 
 ## 安装与使用
 
-所有公开安装包均以 [Di-Y](https://github.com/Di-Y/SmartInput-for-Visual-Studio-and-SSMS/releases)  和 [我在人间做废物](https://github.com/Ysm-04/SmartInput-for-Visual-Studio/releases) 为准。两个 SSMS 压缩包均已包含部署脚本和对应载荷，解压后无需保留源码目录结构。
+所有公开安装包均以 [Ysm-04/SmartInput-for-Visual-Studio Releases](https://github.com/Ysm-04/SmartInput-for-Visual-Studio/releases) 为准。两个 SSMS 压缩包均已包含部署脚本和对应载荷，解压后无需保留源码目录结构。
 
 ### Visual Studio 2022 / 2026
 
-1. 从 [最新版本页面](https://github.com/Di-Y/SmartInput-for-Visual-Studio-and-SSMS/releases/latest) 下载 `SmartInput.VisualStudio.vsix`。
+1. 从 [最新版本页面](https://github.com/Ysm-04/SmartInput-for-Visual-Studio/releases/latest) 下载 `SmartInput.VisualStudio.vsix`。
 2. 双击文件并通过 VSIX Installer 选择目标 Visual Studio 实例。
 3. 安装完成后重启 Visual Studio。
 
@@ -164,7 +164,7 @@ XAML 规则（0.3.4 新增）：
 **主路径：直接运行 / 双击 VSIX 安装。** SSMS 22 自带 `Common7\IDE\VSIXInstaller.exe`（与 VS 2026 同一代安装器），本扩展 VSIX 清单已声明 `Microsoft.VisualStudio.Ssms [21.0,23.0)` amd64 安装目标，因此可以直接用 VSIX Installer 安装（已在 SSMS 22.10.12210.168 实机核对）：
 
 1. 建议先完全关闭 SSMS（任务管理器确认没有 `Ssms.exe`；安装器会提示重启目标实例后生效）。
-2. 从 [最新版本页面](https://github.com/Di-Y/SmartInput-for-Visual-Studio-and-SSMS/releases/latest) 下载并解压 `SmartInput-SSMS22.zip`，双击其中的 `SmartInput.VisualStudio.vsix`；也可在普通 PowerShell 中直接调用 SSMS 自带的安装器（当前包按用户安装，**无需管理员权限**）：
+2. 从 [最新版本页面](https://github.com/Ysm-04/SmartInput-for-Visual-Studio/releases/latest) 下载并解压 `SmartInput-SSMS22.zip`，双击其中的 `SmartInput.VisualStudio.vsix`；也可在普通 PowerShell 中直接调用 SSMS 自带的安装器（当前包按用户安装，**无需管理员权限**）：
 
 ```powershell
 # 原样运行 SSMS 22 自带的 VSIX Installer（路径按实际安装位置调整）
@@ -214,7 +214,7 @@ powershell -ExecutionPolicy Bypass -File .\Deploy-SSMS22.ps1 -SsmsIdeDir 'D:\SQL
 
 ### SSMS 18 / 19 / 20（SSMS 2022 代，32 位）
 
-1. 从 [最新版本页面](https://github.com/Di-Y/SmartInput-for-Visual-Studio-and-SSMS/releases/latest) 下载并解压 `SmartInput-SSMS-Legacy.zip`。
+1. 从 [最新版本页面](https://github.com/Ysm-04/SmartInput-for-Visual-Studio/releases/latest) 下载并解压 `SmartInput-SSMS-Legacy.zip`。
 2. 可先在普通 PowerShell 中运行 `-WhatIf`，确认本机检测到的 SSMS 版本和目标路径。
 3. 正式部署前完全关闭对应版本的 SSMS，再用**“以管理员身份运行”**的 PowerShell 执行安装命令。
 
@@ -269,7 +269,7 @@ powershell -ExecutionPolicy Bypass -File .\Deploy-SSMS-Legacy.ps1 -Uninstall
 
 ## 构建与测试
 
-构建需要 MSBuild（Visual Studio 2022 17.14+ 或兼容版本）和 .NET Framework 4.8 目标包。**不需要单独安装 .NET SDK，也不要求预装 Visual Studio 扩展开发工作负载**；VSSDK 17、VSSDK 15 和 VSIX 构建依赖由 NuGet 还原到项目的 `.packages` 目录。
+构建需要 MSBuild（Visual Studio 2022 17.14+ 或兼容版本）和 .NET Framework 4.8 目标包。**不需要单独安装 .NET SDK，也不要求预装 Visual Studio 扩展开发工作负载**；VSSDK 17、VSSDK 15 和 VSIX 构建依赖由 NuGet 自动还原到当前用户的全局包缓存。
 
 工程会自动使用当前 MSBuild 所在 Visual Studio 的 VSSDK 目标目录：VS 2022 为 `Microsoft\VisualStudio\v17.0`，VS 2026 为 `v18.0`（0.3.4 起自动识别）。因此在只安装 VS 2026 的机器上同样可以产出 VSIX；若两者都不存在，VSSDK 导入会被跳过且**不会生成 VSIX**，请改用带有 VSSDK 的 MSBuild 或安装对应工作负载。
 
@@ -296,34 +296,6 @@ powershell -ExecutionPolicy Bypass -File .\Deploy-SSMS-Legacy.ps1 -Uninstall
 ```
 
 生成的 `SmartInput-SSMS22.zip`（现代 VSIX + `Deploy-SSMS22.ps1` + 安装说明，其中 VSIX 在 SSMS 22 上可直接双击安装）和 `SmartInput-SSMS-Legacy.zip`（Legacy 四个平铺文件 + `Deploy-SSMS-Legacy.ps1` + 安装说明）位于 `artifacts/`。完整验证记录见 [docs/VALIDATION.md](docs/VALIDATION.md)，实机回归项目见 [docs/MANUAL-TESTS.md](docs/MANUAL-TESTS.md)。
-
-## 构建与测试
-
-构建需要 MSBuild（Visual Studio 2022 17.14+ 或兼容版本）和 .NET Framework 4.8 目标包。**不需要单独安装 .NET SDK，也不要求预装 Visual Studio 扩展开发工作负载**；VSSDK 17、VSSDK 15 和 VSIX 构建依赖由 NuGet 还原到项目的 `.packages` 目录。
-
-```powershell
-# 还原、Release 构建、运行测试并校验两套包
-.\build.ps1 -Configuration Release
-
-# 已还原依赖时可离线构建
-.\build.ps1 -Configuration Release -SkipRestore
-
-# 也可显式指定 MSBuild
-.\build.ps1 -Configuration Release -MSBuildPath 'C:\Path\To\MSBuild.exe'
-```
-
-脚本不会安装扩展、启动 Visual Studio / SSMS 或修改系统输入法。一次构建会产生两套不可互换的二进制：
-
-- 现代包（x64，VSSDK 17）：`src/SmartInput.VisualStudio/bin/Release/SmartInput.VisualStudio.vsix`，用于 Visual Studio 2022/2026 与 SSMS 22。
-- Legacy 包（AnyCPU，绑定 VSSDK 15）：`src/SmartInput.Ssms.Legacy/bin/Release/`，用于 32 位 SSMS 18/19/20。
-
-`tools/Verify-Package.ps1` 校验现代 VSIX，`tools/Verify-LegacyPackage.ps1` 校验 Legacy 负载。制作发布附件时运行：
-
-```powershell
-.\tools\Pack-Release.ps1 -Build
-```
-
-生成的 `SmartInput-SSMS22.zip` 和 `SmartInput-SSMS-Legacy.zip` 位于 `artifacts/`。完整验证记录见 [docs/VALIDATION.md](docs/VALIDATION.md)，实机回归项目见 [docs/MANUAL-TESTS.md](docs/MANUAL-TESTS.md)。
 
 ## 兼容性与已知限制
 
@@ -381,8 +353,8 @@ Smart Input 源于中文开发者在代码、注释和字符串之间频繁切�
 
 ## 参与贡献
 
-1. 通过本仓库的 [Issues](https://github.com/Di-Y/SmartInput-for-Visual-Studio-and-SSMS/issues) 报告缺陷或提出建议，并附上系统、宿主、扩展和输入法版本，以及复现步骤与实际表现；请勿上传私人源码、候选词或完整键盘记录。
-2. Fork 仓库后在独立分支修改，通过 [Pull Requests](https://github.com/Di-Y/SmartInput-for-Visual-Studio-and-SSMS/pulls) 提交，并说明动机、改动和验证方式。
+1. 通过本仓库的 [Issues](https://github.com/Ysm-04/SmartInput-for-Visual-Studio/issues) 报告缺陷或提出建议，并附上系统、宿主、扩展和输入法版本，以及复现步骤与实际表现；请勿上传私人源码、候选词或完整键盘记录。
+2. Fork 仓库后在独立分支修改，通过 [Pull Requests](https://github.com/Ysm-04/SmartInput-for-Visual-Studio/pulls) 提交，并说明动机、改动和验证方式。
 3. 提交前运行 `.\build.ps1 -Configuration Release`，确认当前 **177 项自动化测试**、现代 VSIX 和 Legacy 负载校验全部通过。
 4. 不要提交 `.packages`、`bin`、`obj`、`.vs` 等还原或构建产物；新增第三方依赖时须注明来源与许可证。
 5. 遵守项目的[隐私边界](docs/PRIVACY.md)：不联网、不采集源码或按键、不自动替换标点。
@@ -397,7 +369,6 @@ Smart Input 源于中文开发者在代码、注释和字符串之间频繁切�
 
 提交代码或文档时，请确保提交内容由提交者拥有相应权利，或已取得必要授权；新增第三方依赖时，请同时说明其来源和许可证。
 
-问题反馈请提交到本仓库的 [Issues](https://github.com/Di-Y/SmartInput-for-Visual-Studio-and-SSMS/issues)，并提供系统版本、Visual Studio / SSMS 版本、扩展版本、输入法版本、操作步骤和实际表现。
-
+问题反馈请提交到本仓库的 [Issues](https://github.com/Ysm-04/SmartInput-for-Visual-Studio/issues)，并提供系统版本、Visual Studio / SSMS 版本、扩展版本、输入法版本、操作步骤和实际表现。
 
 参考：[SSMS 版本与扩展兼容说明](https://learn.microsoft.com/sql/ssms/sql-server-management-studio-changelog-ssms)、[VS 2026 扩展兼容模型](https://learn.microsoft.com/zh-cn/visualstudio/extensibility/migration/extension-compatibility?view=visualstudio)、[VS 光标格式接口](https://learn.microsoft.com/en-us/visualstudio/extensibility/walkthrough-customizing-the-text-view?view=vs-2022)、[WPF InputMethod](https://learn.microsoft.com/en-us/dotnet/api/system.windows.input.inputmethod?view=netframework-4.8)。SSMS 手动部署与缓存清理的实现参考了开源项目 [mourier/sql-pilot](https://github.com/mourier/sql-pilot) 的集成笔记。

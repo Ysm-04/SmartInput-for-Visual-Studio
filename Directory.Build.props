@@ -2,5 +2,8 @@
   <PropertyGroup>
     <Deterministic>true</Deterministic>
     <UseSharedCompilation>false</UseSharedCompilation>
+
+    <!-- 统一使用 PackageReference（本仓库没有 packages.config 工程）。 -->
+    <RestoreProjectStyle>PackageReference</RestoreProjectStyle>
   </PropertyGroup>
 </Project>

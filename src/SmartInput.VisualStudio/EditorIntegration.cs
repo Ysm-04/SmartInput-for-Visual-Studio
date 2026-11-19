@@ -25,7 +25,7 @@ namespace SmartInput.VisualStudio
     }
 
     [Export(typeof(IWpfTextViewCreationListener))]
-    [ContentType("C/C++"), ContentType("CSharp"), ContentType(EditorLanguage.Sql)]
+    [ContentType("C/C++"), ContentType("CSharp"), ContentType("XAML"), ContentType(EditorLanguage.Sql)]
     [TextViewRole(PredefinedTextViewRoles.Document)]
     [TextViewRole(PredefinedTextViewRoles.Editable)]
     internal sealed class ViewListener : IWpfTextViewCreationListener
@@ -36,7 +36,12 @@ namespace SmartInput.VisualStudio
         internal AdornmentLayerDefinition ManualCaretLayer = null;
 
         [Import] internal SessionFactory Sessions = null;
-        public void TextViewCreated(IWpfTextView textView) { Sessions.Get(textView); }
+        public void TextViewCreated(IWpfTextView textView)
+        {
+            // Debugger expression views (Watch / Immediate / QuickWatch) also carry the C# content
+            // type; only real editor documents get a session (see ViewEligibility).
+            if (ViewEligibility.IsDocumentEditor(textView)) Sessions.Get(textView);
+        }
     }
 
     // Some SSMS builds surface the T-SQL query editor under a content type derived from "code" whose
@@ -51,7 +56,8 @@ namespace SmartInput.VisualStudio
         [Import] internal SessionFactory Sessions = null;
         public void TextViewCreated(IWpfTextView textView)
         {
-            if (EditorLanguage.IsSqlDerivedOnly(textView.TextBuffer.ContentType)) Sessions.Get(textView);
+            if (ViewEligibility.IsDocumentEditor(textView)
+                && EditorLanguage.IsSqlDerivedOnly(textView.TextBuffer.ContentType)) Sessions.Get(textView);
         }
     }
 
@@ -68,7 +74,8 @@ namespace SmartInput.VisualStudio
         {
             // Only attach to renamed SQL-like types not already covered by the exact "SQL" export;
             // every other "code" editor (plain text, other languages) is left untouched.
-            if (!EditorLanguage.IsSqlDerivedOnly(host.TextView.TextBuffer.ContentType)) return null;
+            if (!ViewEligibility.IsDocumentEditor(host.TextView)
+                || !EditorLanguage.IsSqlDerivedOnly(host.TextView.TextBuffer.ContentType)) return null;
             return new SmartInputMargin(Sessions.Get(host.TextView));
         }
     }
@@ -76,14 +83,19 @@ namespace SmartInput.VisualStudio
     [Export(typeof(IWpfTextViewMarginProvider))]
     [Name(SmartInputMargin.MarginName)]
     [MarginContainer(PredefinedMarginNames.Bottom)]
-    [ContentType("C/C++"), ContentType("CSharp"), ContentType(EditorLanguage.Sql)]
+    [ContentType("C/C++"), ContentType("CSharp"), ContentType("XAML"), ContentType(EditorLanguage.Sql)]
     [TextViewRole(PredefinedTextViewRoles.Document)]
     [TextViewRole(PredefinedTextViewRoles.Editable)]
     internal sealed class MarginProvider : IWpfTextViewMarginProvider
     {
         [Import] internal SessionFactory Sessions = null;
         public IWpfTextViewMargin CreateMargin(IWpfTextViewHost host, IWpfTextViewMargin container)
-            => new SmartInputMargin(Sessions.Get(host.TextView));
+            // The bottom margin is also offered to tool-window text views (debugger expression
+            // boxes). Returning null there keeps the status button out of Watch / Immediate /
+            // QuickWatch instead of drawing it over their input fields.
+            => ViewEligibility.IsDocumentEditor(host.TextView)
+                ? new SmartInputMargin(Sessions.Get(host.TextView))
+                : null;
     }
 
     internal sealed class SmartInputMargin : IWpfTextViewMargin
@@ -118,6 +130,10 @@ namespace SmartInput.VisualStudio
                 button.Foreground = new SolidColorBrush(settings.StatusTextWpfColor);
             else
                 button.ClearValue(Control.ForegroundProperty);
+            if (settings.UseCustomStatusBackgroundColor)
+                button.Background = new SolidColorBrush(settings.StatusBackgroundWpfColor);
+            else
+                button.ClearValue(Control.BackgroundProperty);
             button.Content = "Smart Input · " + session.Status;
         }
         public FrameworkElement VisualElement => button;

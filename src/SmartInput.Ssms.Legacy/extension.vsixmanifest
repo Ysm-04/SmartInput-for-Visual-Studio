@@ -1,15 +1,15 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <!--
   v1 (2010 schema) manifest for the SSMS 18 / 19 / 20 isolated shell (the 32-bit "SSMS 2022"
   family). Deployed flat as "extension.vsixmanifest" next to the DLLs and the .pkgdef by
-  tools\Deploy-SSMS-Legacy.ps1. SSMS 22 (2025) uses the modern v2 manifest produced from the
-  SmartInput.VisualStudio project instead.
+  tools\Deploy-SSMS-Legacy.ps1. SSMS 22 (2025) ships a VSIXInstaller and uses the modern v2
+  manifest produced from the SmartInput.VisualStudio project instead.
 -->
 <Vsix Version="1.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2010">
   <Identifier Id="SmartInput.Ssms.Legacy.943daace-d510-4e75-b17c-715cf0602c01">
     <Name>Smart Input for SSMS (2018-2022)</Name>
     <Author>我在人间做废物</Author>
-    <Version>0.3.3</Version>
+    <Version>0.3.4.1</Version>
     <Description xml:space="preserve">在 SQL Server Management Studio 18/19/20（32 位）的 Transact-SQL 编辑器中，按代码、注释与字符串上下文自动切换微软拼音 / 搜狗拼音的中英文态。代码与 [方括号]、"双引号"标识符保持英文；-- 注释、嵌套 /* */ 注释与含汉字的字符串切到中文。</Description>
     <Locale>2052</Locale>
     <SupportedProducts>

@@ -22,6 +22,18 @@
     <CopyVsixExtensionFiles>false</CopyVsixExtensionFiles>
     <UseCodebase>true</UseCodebase>
     <MinimumVisualStudioVersion>17.0</MinimumVisualStudioVersion>
+    <!--
+      Locate the VSSDK MSBuild targets belonging to the MSBuild that is running this build.
+      VS 2022 installs them under Microsoft\VisualStudio\v17.0, VS 2026 under v18.0 (and later
+      versions will use their own folder). Hard-coding v17.0 made the whole VSIX / CreatePkgDef
+      step silently disappear on a machine that only has VS 2026: the conditional import below
+      then resolved to a non-existent path, the build still "succeeded", but no .vsix was
+      produced. Prefer whichever versioned targets really exist, newest first, and keep v17.0 as
+      the historical fallback for build servers that only restore the VSSDK 17 packages.
+    -->
+    <VSToolsPath Condition="'$(VSToolsPath)' == '' AND Exists('$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v19.0\VSSDK\Microsoft.VsSDK.targets')">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v19.0</VSToolsPath>
+    <VSToolsPath Condition="'$(VSToolsPath)' == '' AND Exists('$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v18.0\VSSDK\Microsoft.VsSDK.targets')">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v18.0</VSToolsPath>
+    <VSToolsPath Condition="'$(VSToolsPath)' == '' AND Exists('$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v17.0\VSSDK\Microsoft.VsSDK.targets')">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v17.0</VSToolsPath>
     <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v17.0</VSToolsPath>
   </PropertyGroup>
   <ItemGroup>

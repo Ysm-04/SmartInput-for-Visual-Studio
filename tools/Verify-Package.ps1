@@ -40,9 +40,21 @@ function Select-RequiredNode {
     return $node
 }
 
+function Load-AssemblyForInspection {
+    param([string]$AssemblyPath)
+    # Windows marks files that were extracted from a downloaded archive (or that live on a
+    # network share / mapped drive) with the mark-of-the-web "network location" flag. The CLR
+    # then refuses Assembly.LoadFrom with "Operation is not supported (0x80131515)" even though
+    # the file is readable. Loading the bytes bypasses that zone check and is sufficient for
+    # enumerating manifest resources, which is all this check needs.
+    try { return [System.Reflection.Assembly]::LoadFrom($AssemblyPath) }
+    catch [System.IO.FileLoadException] { return [System.Reflection.Assembly]::Load([System.IO.File]::ReadAllBytes($AssemblyPath)) }
+    catch [System.NotSupportedException] { return [System.Reflection.Assembly]::Load([System.IO.File]::ReadAllBytes($AssemblyPath)) }
+}
+
 function Test-AssemblyResourceKey {
     param([string]$AssemblyPath, [string]$Key)
-    $assembly = [System.Reflection.Assembly]::LoadFrom($AssemblyPath)
+    $assembly = Load-AssemblyForInspection -AssemblyPath $AssemblyPath
     foreach ($resourceName in $assembly.GetManifestResourceNames()) {
         $stream = $assembly.GetManifestResourceStream($resourceName)
         if ($null -eq $stream) { continue }
@@ -115,7 +127,11 @@ try {
     }
     $pluginPath = Join-Path $workspacePath "src\SmartInput.VisualStudio\bin\$Configuration\SmartInput.VisualStudio.dll"
     $fileVersion = (Get-Item -LiteralPath $pluginPath).VersionInfo.FileVersion
-    if ($fileVersion -ne "$($identity.Version).0") { throw 'Plugin assembly version does not match VSIX version.' }
+    # A three-part VSIX version (0.3.4) maps to a four-part assembly file version (0.3.4.0);
+    # a four-part VSIX version (0.3.4.1) is already the assembly file version. Accept both so a
+    # revision-only release does not need a second, divergent version scheme.
+    $expectedFileVersion = if (@($identity.Version -split '\.').Count -ge 4) { $identity.Version } else { "$($identity.Version).0" }
+    if ($fileVersion -ne $expectedFileVersion) { throw 'Plugin assembly version does not match VSIX version.' }
     if (-not (Test-AssemblyResourceKey -AssemblyPath $pluginPath -Key $menuResourceName)) { throw 'Compiled VSCT menu resource is not embedded in the package assembly.' }
     Write-Host "PASS VSIX $($identity.Version): structure, MEF entry, VS Package/menu entries, options page, target, dependency isolation, and assemblies match ($($names.Count) entries)"
     Get-FileHash -LiteralPath $packagePath -Algorithm SHA256 | Select-Object Hash,Path

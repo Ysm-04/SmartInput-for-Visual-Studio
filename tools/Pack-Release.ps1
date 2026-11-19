@@ -6,8 +6,8 @@
     在运行 build.ps1 完成 Release 构建之后，本脚本生成两个互不依赖、可直接交付最终用户的压缩包：
 
       SmartInput-SSMS22.zip        面向 SSMS 22（2025，64 位）
-          - SmartInput.VisualStudio.vsix   现代包（VSSDK 17，x64）
-          - Deploy-SSMS22.ps1              部署 / 卸载脚本
+          - SmartInput.VisualStudio.vsix   现代包（VSSDK 17，x64），SSMS 22 与 Visual Studio 共用
+          - Deploy-SSMS22.ps1              兜底部署 / 卸载脚本
           - 安装说明.txt
 
       SmartInput-SSMS-Legacy.zip   面向 SSMS 18 / 19 / 20（32 位，VSSDK 15）
@@ -18,8 +18,9 @@
           - Deploy-SSMS-Legacy.ps1         部署 / 卸载脚本
           - 安装说明.txt
 
-    Visual Studio 2022/2026 用户仍直接使用 src\SmartInput.VisualStudio\bin\Release 下的
-    SmartInput.VisualStudio.vsix（通过 VSIXInstaller 安装），不在这两个 SSMS 压缩包范围内。
+    SmartInput.VisualStudio.vsix 是 Visual Studio 2022/2026 与 SSMS 22 共用的安装包：SSMS 22
+    自带 VSIX Installer，通常直接运行该 .vsix 即可安装。SmartInput-SSMS22.zip 只是把同一个
+    VSIX 与兜底部署脚本、安装说明放在一起，便于离线或安装器未列出 SSMS 22 时使用。
 
 .PARAMETER Configuration
     收集哪个配置的构建产物，默认 Release。
@@ -84,24 +85,32 @@ Smart Input —— SSMS 22（SQL Server Management Studio 2025，64 位）安装
 =====================================================================
 
 包含文件：
-  SmartInput.VisualStudio.vsix   现代扩展包（VSSDK 17，x64）。注意：SSMS 不运行 VSIXInstaller，
-                                请勿双击安装，需用下面的脚本平铺部署。
-  Deploy-SSMS22.ps1             部署 / 卸载脚本。
+  SmartInput.VisualStudio.vsix   现代扩展包（VSSDK 17，x64），SSMS 22 与 Visual Studio 共用。
+  Deploy-SSMS22.ps1             兜底部署 / 卸载脚本。
 
-安装步骤：
+推荐安装：直接运行 VSIX（SSMS 22 自带 VSIX Installer）
   1. 完全关闭 SSMS 22（包括所有查询窗口）。
-  2. 右键“以管理员身份运行 PowerShell”，cd 到本解压目录。
-  3. 建议先演练（只显示将要做什么，不改动系统）：
+  2. 双击（或右键“打开”）SmartInput.VisualStudio.vsix；若安装器列出多个产品目标，
+     选择 SSMS 22 后安装。也可在“以管理员身份运行”的 PowerShell 中执行：
+         & "<SSMS 22 安装目录>\Common7\IDE\VSIXInstaller.exe" ".\SmartInput.VisualStudio.vsix"
+  3. 启动 SSMS 22 并打开一个 .sql 查询窗口：“工具”菜单出现 Smart Input 暂停命令、
+     左下角显示状态栏即成功。
+
+兜底安装（仅当 VSIX Installer 未列出 SSMS 22、安装失败，或安装后未加载时）
+  1. 完全关闭 SSMS 22，右键“以管理员身份运行 PowerShell”，cd 到本解压目录。
+  2. 建议先演练（只显示将要做什么，不改动系统）：
          powershell -ExecutionPolicy Bypass -File .\Deploy-SSMS22.ps1 -WhatIf
-  4. 正式部署（脚本会自动探测标准安装路径，并自动找到同目录的 VSIX）：
+  3. 正式部署（脚本会自动探测标准安装路径，并自动找到同目录的 VSIX）：
          powershell -ExecutionPolicy Bypass -File .\Deploy-SSMS22.ps1
      若 SSMS 装在非系统盘 / 自定义目录，请显式指定 IDE 目录：
          powershell -ExecutionPolicy Bypass -File .\Deploy-SSMS22.ps1 -SsmsIdeDir "D:\SQL Server Studio 22\Common7\IDE"
-  5. 启动 SSMS 22 并打开一个 .sql 查询窗口：“工具”菜单出现 Smart Input 暂停命令、
-     左下角显示状态栏即成功。
 
 卸载：
+  - 通过 VSIX Installer 安装的：在 VSIX Installer 的已安装列表卸载，或执行：
+         & "<SSMS 22 安装目录>\Common7\IDE\VSIXInstaller.exe" /uninstall:SmartInput.VisualStudio.943daace-d510-4e75-b17c-715cf0602c01
+  - 通过脚本手动部署的：
          powershell -ExecutionPolicy Bypass -File .\Deploy-SSMS22.ps1 -Uninstall
+  注意：VSIX 安装与手动部署二选一，不要对同一台机器重复部署。
 
 说明：脚本在删除私有注册表缓存（privateregistry.bin）前会先自动备份到该缓存目录下的
 SmartInput-PrivateRegistry-Backup 子目录（文件名带时间戳）。清缓存后首次启动可能重建 MEF 缓存，

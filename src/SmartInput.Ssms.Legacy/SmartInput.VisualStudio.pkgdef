@@ -1,12 +1,13 @@
-﻿; Hand-maintained package registration for SSMS 18 / 19 / 20 (32-bit Visual Studio 2017 shell).
+; Hand-maintained package registration for SSMS 18 / 19 / 20 (32-bit Visual Studio 2017 shell).
 ; The modern package generates an equivalent file via VSSDK.BuildTools; here it is maintained by
-; hand because SSMS 18+ never runs VSIXInstaller and the legacy build does not produce a VSIX.
+; hand because SSMS 18/19/20 (32-bit isolated shell) do not consume the modern VSIX and the
+; legacy build does not produce one; see tools\Deploy-SSMS-Legacy.ps1 for the flat deployment.
 ; The Tools menu command/menu resource is intentionally omitted (the .vsct is not compiled in the
 ; legacy build); the status-bar button still provides pause/resume, and all MEF-driven switching works.
 
 [$RootKey$\InstalledProducts\SmartInputPackage]
 @="Smart Input"
-"PID"="0.3.3"
+"PID"="0.3.4.1"
 "ProductDetails"="Local input-state switching for Visual Studio and SSMS"
 "Package"="{a11d90fc-8f3d-493a-a227-d7a59c26eae8}"
 

@@ -19,12 +19,15 @@ namespace SmartInput.VisualStudio
         private const int MaximumDocumentLength = 2 * 1024 * 1024;
         private const int SwitchConfirmationWindowMilliseconds = 600;
         private const int MaximumSwitchAttempts = 2;
+        private const int WmInputLangChange = 0x0051;
         private readonly IWpfTextView view;
         private readonly IClassifier classifier;
         private readonly CaretColorController caret;
         private readonly InputMethodAdapterFactory inputMethods;
         private IInputMethodAdapter ime;
+        private IInputMethodAdapter lastActiveInputMethod;
         private readonly SwitchPolicy policy = new SwitchPolicy();
+        private readonly ImeResyncPolicy resync = new ImeResyncPolicy();
         private readonly DispatcherTimer debounce, poll;
         private readonly InputMethod input;
         private CancellationTokenSource analysisCancellation;
@@ -76,7 +79,8 @@ namespace SmartInput.VisualStudio
             get
             {
                 var contentType = view.TextBuffer.ContentType;
-                return contentType.IsOfType("C/C++") || contentType.IsOfType("CSharp") || EditorLanguage.IsSql(contentType);
+                return contentType.IsOfType("C/C++") || contentType.IsOfType("CSharp")
+                    || contentType.IsOfType("XAML") || EditorLanguage.IsSql(contentType);
             }
         }
 
@@ -196,6 +200,15 @@ namespace SmartInput.VisualStudio
                 ClearPending();
                 blockedContext = null;
                 lastActual = InputMode.Unknown;
+                // The newly activated input method may still be reporting the previous method's
+                // mode through the TSF / IMM32 channels for a moment, and may ignore a write that
+                // arrives before it finished activating. Ask for a short burst of re-synchronisation
+                // writes below so Sogou/Microsoft Pinyin really receives the desired state instead
+                // of being left "recognised but not actually switched" until the user presses
+                // Shift. Focus changes with the same input method do not need that extra burst.
+                if (!object.ReferenceEquals(lastActiveInputMethod, activeIme))
+                    resync.NoteActiveInputMethodChanged();
+                lastActiveInputMethod = activeIme;
             }
             if (ime == null)
             {
@@ -307,6 +320,11 @@ namespace SmartInput.VisualStudio
                 return;
             }
             InputMode? requested = policy.Request(actual, Composing, Focused);
+            // A short re-synchronisation burst after an input-method change, even when the read
+            // already reports the desired mode (see ImeResyncPolicy). A normal write already
+            // covers the re-synchronisation, so it clears the pending burst instead.
+            if (requested.HasValue) resync.Reset();
+            else if (resync.ShouldForceWrite(actual, policy.Desired)) requested = policy.Desired;
             if (requested.HasValue)
             {
                 pending = requested;
@@ -394,12 +412,20 @@ namespace SmartInput.VisualStudio
                 nativeComposition = wpfComposition = false; // includes cancellation with Escape
                 Schedule();
             }
+            else if (message == WmInputLangChange)
+            {
+                // A different input method became active for this window. Evaluate right away:
+                // the adapter-change detection resets the manual override and schedules the
+                // one-off re-synchronisation write for the new input method.
+                Schedule();
+            }
             return IntPtr.Zero; // Never consume/modify the IME's messages.
         }
 
         private static SourceLanguage LanguageFor(Microsoft.VisualStudio.Utilities.IContentType contentType)
         {
             if (contentType.IsOfType("CSharp")) return SourceLanguage.CSharp;
+            if (contentType.IsOfType("XAML")) return SourceLanguage.Xaml;
             if (EditorLanguage.IsSql(contentType)) return SourceLanguage.Sql;
             return SourceLanguage.Cpp;
         }

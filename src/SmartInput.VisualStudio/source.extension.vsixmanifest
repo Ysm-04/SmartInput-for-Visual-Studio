@@ -1,16 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
   <Metadata>
-    <Identity Id="SmartInput.VisualStudio.943daace-d510-4e75-b17c-715cf0602c01" Version="0.3.3" Language="zh-CN" Publisher="我在人间做废物" />
+    <Identity Id="SmartInput.VisualStudio.943daace-d510-4e75-b17c-715cf0602c01" Version="0.3.4.1" Language="zh-CN" Publisher="我在人间做废物" />
     <DisplayName>Smart Input for Visual Studio and SSMS</DisplayName>
-    <Description xml:space="preserve">面向 C/C++、C# 与 Transact-SQL 的本地智能输入态切换。在 Visual Studio 2022/2026 与 SQL Server Management Studio 22（2025）的代码、注释、字符串之间自动切换微软拼音/搜狗拼音的中英文态；支持状态栏与手动覆盖光标颜色设置。SQL 支持 -- 与嵌套 /* */ 注释、单引号字符串（含 N'' 与 '' 转义），方括号与双引号标识符保持英文。</Description>
+    <Description xml:space="preserve">面向 C/C++、C#、XAML 与 Transact-SQL 的本地智能输入态切换。在 Visual Studio 2022/2026 与 SQL Server Management Studio 22（2025）的代码、注释、字符串之间自动切换微软拼音/搜狗拼音的中英文态；支持状态栏文字 / 背景色与手动覆盖光标颜色设置。SQL 支持 -- 与嵌套 /* */ 注释、单引号字符串（含 N'' 与 '' 转义），方括号与双引号标识符保持英文。</Description>
   </Metadata>
   <Installation>
     <InstallationTarget Id="Microsoft.VisualStudio.Community" Version="[17.14,)">
       <ProductArchitecture>amd64</ProductArchitecture>
     </InstallationTarget>
-    <!-- SSMS 22 (2025) is the 64-bit Visual Studio 2026 shell. SSMS does not run VSIXInstaller;
-         deploy the unpacked extension under Common7\IDE\Extensions (see tools\Deploy-SSMS22.ps1). -->
+    <!-- SSMS 22 (2025) is the 64-bit Visual Studio 2026 shell and ships its own VSIXInstaller;
+         the VSIX can be installed directly (choose "SQL Server Management Studio 22" in the
+         installer). The unpacked Common7\IDE\Extensions deployment (tools\Deploy-SSMS22.ps1)
+         remains a fallback for all-users / offline / cache-repair scenarios. -->
     <InstallationTarget Id="Microsoft.VisualStudio.Ssms" Version="[21.0,23.0)">
       <ProductArchitecture>amd64</ProductArchitecture>
     </InstallationTarget>
